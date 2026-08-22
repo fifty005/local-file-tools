@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Combine PDF Files</title>
+<title>Local File Tools</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
 <style>
@@ -93,6 +93,34 @@ img{display:block;max-width:100%;}
   font-size:clamp(30px,5vw,44px);margin:0 0 14px;font-weight:700;letter-spacing:-.02em;line-height:1.1;
 }
 .landing-sub{font-size:16.5px;color:var(--ink-soft);max-width:520px;margin:0 auto 36px;line-height:1.55;}
+
+/* ---------- Tool landing ---------- */
+.tool-tabs{display:inline-flex;gap:4px;padding:4px;background:var(--panel);border:1px solid var(--line);border-radius:10px;margin:0 auto 28px;box-shadow:var(--shadow-s);}
+.tool-tabs button{border:0;background:transparent;color:var(--ink-soft);padding:9px 13px;border-radius:7px;font:600 13px var(--font-ui);cursor:pointer;}
+.tool-tabs button:hover{background:var(--accent-soft);color:var(--accent);}
+.tool-tabs button.active{background:var(--accent);color:#fff;}
+.tool-pane[hidden]{display:none;}
+.tool-intro{font-size:15px;line-height:1.5;color:var(--ink-soft);margin:-2px auto 22px;max-width:580px;}
+.image-tool-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-l);box-shadow:var(--shadow-s);padding:22px;text-align:left;}
+.image-dropzone{border:2px dashed var(--line-strong);border-radius:var(--radius-m);padding:30px 20px;text-align:center;cursor:pointer;transition:.15s;}
+.image-dropzone:hover,.image-dropzone.dragover{border-color:var(--accent);background:var(--accent-soft);}
+.image-dropzone .dz-icon-wrap{margin-bottom:12px;width:52px;height:52px;border-radius:14px;}
+.image-settings{display:grid;grid-template-columns:1fr 120px 1fr;gap:12px;margin-top:18px;align-items:end;}
+.image-settings label,.image-field label{display:block;font-size:12px;font-weight:700;color:var(--ink-soft);margin-bottom:6px;}
+.image-settings input,.image-settings select,.image-field select{width:100%;height:42px;border:1px solid var(--line-strong);border-radius:7px;padding:8px 10px;background:#fff;font:14px var(--font-ui);}
+.image-result{display:none;grid-template-columns:112px 1fr auto;gap:16px;align-items:center;margin-top:20px;padding-top:20px;border-top:1px solid var(--line);}
+.image-result.show{display:grid;}
+.image-preview{width:112px;height:86px;object-fit:contain;background:var(--paper);border:1px solid var(--line);border-radius:7px;}
+.image-result h3{font-size:14px;margin:0 0 6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.image-result p{font:12px var(--font-mono);color:var(--ink-soft);margin:0;}
+.image-note{margin:14px 0 0;font-size:12px;line-height:1.45;color:var(--ink-soft);}
+.image-status{margin-top:14px;font-size:13px;color:var(--ink-soft);min-height:20px;}
+.convert-list{display:grid;gap:10px;margin-top:18px;}
+.convert-row{display:flex;gap:12px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--paper);}
+.convert-row img{width:52px;height:44px;object-fit:contain;background:#fff;border:1px solid var(--line);border-radius:4px;}
+.convert-row .convert-info{min-width:0;flex:1;}
+.convert-row strong{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.convert-row span{font:11px var(--font-mono);color:var(--ink-soft);}
 
 .dropzone{
   border:2px dashed var(--line-strong);border-radius:var(--radius-l);background:var(--panel);
@@ -468,6 +496,14 @@ details.advanced .adv-body{margin-top:12px;}
   .landing-wrap{padding-top:0;}
   #screen-landing{padding:36px 16px;}
   .modal{border-radius:16px;}
+  .tool-tabs{display:flex;width:100%;margin-bottom:20px;}
+  .tool-tabs button{flex:1;padding:9px 5px;font-size:11px;}
+  .image-tool-card{padding:14px;}
+  .image-settings{grid-template-columns:1fr 88px;}
+  .image-settings .image-action{grid-column:1/-1;}
+  .image-result{grid-template-columns:72px 1fr;}
+  .image-preview{width:72px;height:64px;}
+  .image-result .btn{grid-column:1/-1;width:100%;}
   .btn{min-height:44px;}
   .btn-sm,.btn-icon{min-height:44px;min-width:44px;}
 }
@@ -480,9 +516,15 @@ details.advanced .adv-body{margin-top:12px;}
 <!-- ============ LANDING SCREEN ============ -->
 <section id="screen-landing">
   <div class="landing-wrap">
-    <h1>Combine PDF Files</h1>
+    <nav class="tool-tabs" aria-label="File tools">
+      <button class="active" type="button" data-tool="pdf">Combine PDF</button>
+      <button type="button" data-tool="compress">Reduce image size</button>
+      <button type="button" data-tool="convert">Convert images</button>
+    </nav>
 
-    <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Choose or drop PDF files to begin">
+    <div class="tool-pane" data-tool-pane="pdf">
+      <h1>Combine PDF Files</h1>
+      <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Choose or drop PDF files to begin">
       <div id="dz-default-state">
         <div class="dz-icon-wrap"><svg class="icon" viewBox="0 0 24 24"><path d="M12 16V4"/><path d="M6 10l6-6 6 6"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg></div>
         <p class="dz-title">Drag and drop PDF files here</p>
@@ -495,12 +537,49 @@ details.advanced .adv-body{margin-top:12px;}
         <p class="dz-hint">This happens locally in your browser.</p>
       </div>
       <input type="file" id="file-input" accept="application/pdf,.pdf" multiple class="visually-hidden" tabindex="-1">
+      </div>
+      <div class="privacy-note"><svg class="icon" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Your files stay on your device</div>
+      <p class="filetype-note">Supports PDF files only</p>
+      <div class="landing-alerts" id="landing-alerts"></div>
     </div>
 
-    <div class="privacy-note"><svg class="icon" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Your files stay on your device</div>
-    <p class="filetype-note">Supports PDF files only</p>
+    <div class="tool-pane" data-tool-pane="compress" hidden>
+      <h1>Reduce Image Size</h1>
+      <p class="tool-intro">Choose a target file size. Images are compressed on this device, with the best possible quality used to reach your target.</p>
+      <div class="image-tool-card">
+        <div class="image-dropzone" id="compress-dropzone" tabindex="0" role="button" aria-label="Choose an image to reduce in size">
+          <div class="dz-icon-wrap"><svg class="icon" viewBox="0 0 24 24"><path d="M12 16V4"/><path d="M6 10l6-6 6 6"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg></div>
+          <p class="dz-title">Choose an image</p><p class="dz-hint">JPG, PNG, WebP, GIF, AVIF and BMP</p>
+          <button class="btn btn-primary" type="button">Choose image</button>
+          <input id="compress-file-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif,image/bmp,.jpg,.jpeg,.png,.webp,.gif,.avif,.bmp" class="visually-hidden">
+        </div>
+        <div id="compress-controls" style="display:none;">
+          <div class="image-settings">
+            <div><label for="compress-target">Target size</label><input id="compress-target" type="number" min="1" value="500"></div>
+            <div><label for="compress-unit">Unit</label><select id="compress-unit"><option value="KB">KB</option><option value="MB">MB</option></select></div>
+            <button id="compress-action" class="btn btn-primary image-action" type="button">Reduce image</button>
+          </div>
+          <p class="image-note">If the original is already below the target, it is kept unchanged. Otherwise the tool uses the highest local quality that fits; a very small target may require reducing dimensions.</p>
+        </div>
+        <p class="image-status" id="compress-status" aria-live="polite"></p>
+        <div class="image-result" id="compress-result"><img class="image-preview" id="compress-preview" alt="Compressed image preview"><div><h3 id="compress-name"></h3><p id="compress-details"></p></div><button class="btn btn-primary" id="compress-download" type="button">Download image</button></div>
+      </div>
+    </div>
 
-    <div class="landing-alerts" id="landing-alerts"></div>
+    <div class="tool-pane" data-tool-pane="convert" hidden>
+      <h1>Convert Image Types</h1>
+      <p class="tool-intro">Convert common image files locally. Select one or many images, choose an output type, and download the converted files.</p>
+      <div class="image-tool-card">
+        <div class="image-dropzone" id="convert-dropzone" tabindex="0" role="button" aria-label="Choose images to convert">
+          <div class="dz-icon-wrap"><svg class="icon" viewBox="0 0 24 24"><path d="M12 16V4"/><path d="M6 10l6-6 6 6"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg></div>
+          <p class="dz-title">Choose images to convert</p><p class="dz-hint">JPG, PNG, WebP, GIF, AVIF and BMP</p>
+          <button class="btn btn-primary" type="button">Choose images</button>
+          <input id="convert-file-input" type="file" multiple accept="image/jpeg,image/png,image/webp,image/gif,image/avif,image/bmp,.jpg,.jpeg,.png,.webp,.gif,.avif,.bmp" class="visually-hidden">
+        </div>
+        <div id="convert-controls" style="display:none;" class="image-settings"><div class="image-field"><label for="convert-type">Convert to</label><select id="convert-type"><option value="image/jpeg">JPG</option><option value="image/png">PNG</option><option value="image/webp">WebP</option></select></div><button class="btn btn-primary image-action" id="convert-action" type="button">Convert images</button></div>
+        <p class="image-status" id="convert-status" aria-live="polite"></p><div class="convert-list" id="convert-list"></div>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -861,6 +940,20 @@ function clearGeneratedOutput(){
   state.lastGeneratedBlob = null;
   state.lastGeneratedInfo = null;
 }
+
+/* Image tools — conversion and compression happen only in this browser. */
+var imageState={compressFile:null,compressBlob:null,compressUrl:null,convertFiles:[],convertResults:[]};
+var IMAGE_EXTENSIONS={'image/jpeg':'jpg','image/png':'png','image/webp':'webp'};
+function imageFromFile(file){return new Promise(function(resolve,reject){var url=URL.createObjectURL(file),img=new Image();img.onload=function(){URL.revokeObjectURL(url);resolve(img);};img.onerror=function(){URL.revokeObjectURL(url);reject(new Error('This image type cannot be opened by this browser.'));};img.src=url;});}
+function imageBlob(canvas,type,quality){return new Promise(function(resolve){canvas.toBlob(resolve,type,quality);});}
+function downloadImage(blob,name){var url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url);},2000);}
+function imageTargetBytes(){var n=Number($('#compress-target').value);return n>0?n*($('#compress-unit').value==='MB'?1048576:1024):0;}
+function setImageFiles(kind,files){var accepted=Array.prototype.slice.call(files||[]).filter(function(f){return /^image\//.test(f.type)||/\.(jpe?g|png|webp|gif|avif|bmp)$/i.test(f.name);});if(!accepted.length){$('#'+kind+'-status').textContent='Choose a supported image file.';return;}if(kind==='compress'){imageState.compressFile=accepted[0];$('#compress-controls').style.display='block';$('#compress-result').classList.remove('show');$('#compress-status').textContent=accepted[0].name+' · '+formatBytes(accepted[0].size);}else{imageState.convertFiles=accepted;$('#convert-controls').style.display='grid';$('#convert-list').innerHTML='';$('#convert-status').textContent=accepted.length+' image'+(accepted.length===1?' selected.':'s selected.');}}
+async function compressCurrentImage(){var file=imageState.compressFile,target=imageTargetBytes();if(!file||!target){$('#compress-status').textContent='Enter a valid target size.';return;}$('#compress-status').textContent='Optimizing image locally…';$('#compress-action').disabled=true;try{var blob;if(file.size<=target){blob=file;}else{var img=await imageFromFile(file),canvas=document.createElement('canvas'),scale=1,best=null;for(var pass=0;pass<8&&!best;pass++){canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);var low=.1,high=.98;for(var i=0;i<8;i++){var q=(low+high)/2,candidate=await imageBlob(canvas,'image/webp',q);if(candidate&&candidate.size<=target){best=candidate;low=q;}else high=q;}scale*=.82;}if(!best)throw new Error('The target is too small. Try a larger size.');blob=best;}if(imageState.compressUrl)URL.revokeObjectURL(imageState.compressUrl);imageState.compressBlob=blob;imageState.compressUrl=URL.createObjectURL(blob);$('#compress-preview').src=imageState.compressUrl;$('#compress-name').textContent=file.size<=target?file.name:file.name.replace(/\.[^.]+$/,'')+'.webp';$('#compress-details').textContent=formatBytes(file.size)+' → '+formatBytes(blob.size)+(file.size<=target?' · original kept':' · optimized locally');$('#compress-result').classList.add('show');$('#compress-status').textContent=file.size<=target?'Already under target — no changes made.':'Image ready to download.';}catch(err){$('#compress-status').textContent=err.message||'Unable to reduce this image.';}finally{$('#compress-action').disabled=false;}}
+async function convertImages(){var files=imageState.convertFiles,type=$('#convert-type').value;if(!files.length)return;$('#convert-status').textContent='Converting images locally…';$('#convert-action').disabled=true;$('#convert-list').innerHTML='';for(var i=0;i<files.length;i++){try{var img=await imageFromFile(files[i]),canvas=document.createElement('canvas');canvas.width=img.naturalWidth;canvas.height=img.naturalHeight;canvas.getContext('2d').drawImage(img,0,0);var blob=await imageBlob(canvas,type,.94);if(!blob)throw new Error();var name=files[i].name.replace(/\.[^.]+$/,'')+'.'+IMAGE_EXTENSIONS[type],url=URL.createObjectURL(blob),row=document.createElement('div');row.className='convert-row';row.innerHTML='<img src="'+url+'" alt=""><div class="convert-info"><strong>'+escapeHtml(name)+'</strong><span>'+formatBytes(files[i].size)+' → '+formatBytes(blob.size)+'</span></div><button class="btn btn-secondary btn-sm" type="button">Download</button>';(function(b,n,button){button.addEventListener('click',function(){downloadImage(b,n);});})(blob,name,row.querySelector('button'));$('#convert-list').appendChild(row);}catch(_e){$('#convert-status').textContent='Some images could not be converted by this browser.';}}$('#convert-action').disabled=false;if($('#convert-list').children.length)$('#convert-status').textContent=$('#convert-list').children.length+' image(s) ready to download.';}
+function wireImageDropzone(kind){var zone=$('#'+kind+'-dropzone'),input=$('#'+kind+'-file-input');zone.addEventListener('click',function(e){if(e.target!==input)input.click();});zone.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();input.click();}});['dragenter','dragover'].forEach(function(event){zone.addEventListener(event,function(e){e.preventDefault();zone.classList.add('dragover');});});['dragleave','drop'].forEach(function(event){zone.addEventListener(event,function(e){e.preventDefault();zone.classList.remove('dragover');});});zone.addEventListener('drop',function(e){setImageFiles(kind,e.dataTransfer.files);});input.addEventListener('change',function(){setImageFiles(kind,input.files);input.value='';});}
+$$('[data-tool]').forEach(function(button){button.addEventListener('click',function(){var tool=button.dataset.tool;$$('[data-tool]').forEach(function(b){b.classList.toggle('active',b===button);});$$('[data-tool-pane]').forEach(function(p){p.hidden=p.dataset.toolPane!==tool;});});});
+wireImageDropzone('compress');wireImageDropzone('convert');$('#compress-action').addEventListener('click',compressCurrentImage);$('#compress-download').addEventListener('click',function(){if(imageState.compressBlob)downloadImage(imageState.compressBlob,$('#compress-name').textContent);});$('#convert-action').addEventListener('click',convertImages);
 
 /* ---------------- Landing: file intake ---------------- */
 var dropzone = $('#dropzone');
