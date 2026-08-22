@@ -1,0 +1,1934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Combine PDF Files</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --paper:#F6F7F3;
+  --panel:#FFFFFF;
+  --ink:#1B1D1F;
+  --ink-soft:#63676C;
+  --ink-faint:#9A9D9A;
+  --line:#DEDFD8;
+  --line-strong:#C7C9C0;
+  --accent:#2F5D8A;
+  --accent-hover:#254a6f;
+  --accent-ink:#FFFFFF;
+  --accent-soft:#E7EEF4;
+  --tab:#C97F1F;
+  --tab-soft:#FBEED9;
+  --danger:#B3402A;
+  --danger-soft:#F7E7E2;
+  --success:#2E7D53;
+  --success-soft:#E4F3EA;
+  --radius-s:6px;
+  --radius-m:10px;
+  --radius-l:18px;
+  --shadow-s:0 1px 2px rgba(27,29,31,.07);
+  --shadow-m:0 6px 24px rgba(27,29,31,.12);
+  --shadow-l:0 16px 48px rgba(27,29,31,.20);
+  --font-ui:'IBM Plex Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --font-mono:'IBM Plex Mono','SFMono-Regular',Consolas,monospace;
+  --header-h:64px;
+  --bottom-h:64px;
+}
+*{box-sizing:border-box;}
+html,body{height:100%;}
+body{
+  margin:0;font-family:var(--font-ui);color:var(--ink);background:var(--paper);
+  -webkit-font-smoothing:antialiased;
+}
+button{font-family:inherit;}
+img{display:block;max-width:100%;}
+.visually-hidden{
+  position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+  clip:rect(0,0,0,0);white-space:nowrap;border:0;
+}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px;}
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.001ms!important;transition-duration:.001ms!important;}
+}
+
+/* ---------- Buttons ---------- */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:10px 16px;border-radius:var(--radius-s);border:1px solid transparent;
+  font-size:14px;font-weight:600;cursor:pointer;transition:background .15s,border-color .15s,color .15s,transform .1s;
+  min-height:40px;white-space:nowrap;
+}
+.btn:active{transform:translateY(1px);}
+.btn[disabled]{opacity:.45;cursor:not-allowed;pointer-events:none;}
+.btn-primary{background:var(--accent);color:var(--accent-ink);}
+.btn-primary:hover{background:var(--accent-hover);}
+.btn-secondary{background:var(--panel);color:var(--ink);border-color:var(--line-strong);}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent);}
+.btn-ghost{background:transparent;color:var(--ink-soft);border-color:transparent;}
+.btn-ghost:hover{background:var(--accent-soft);color:var(--accent);}
+.btn-danger{background:transparent;color:var(--danger);border-color:transparent;}
+.btn-danger:hover{background:var(--danger-soft);}
+.btn-sm{padding:6px 10px;font-size:12.5px;min-height:32px;border-radius:6px;}
+.btn-icon{
+  width:36px;height:36px;padding:0;border-radius:8px;background:transparent;border:1px solid transparent;
+  color:var(--ink-soft);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;
+}
+.btn-icon:hover{background:var(--accent-soft);color:var(--accent);}
+.btn-icon.danger:hover{background:var(--danger-soft);color:var(--danger);}
+.icon{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none;}
+
+/* ---------- Landing ---------- */
+#screen-landing{
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;
+  padding:64px 20px 40px;
+}
+.landing-wrap{width:100%;max-width:720px;text-align:center;}
+.brandmark{display:inline-flex;align-items:center;gap:10px;margin-bottom:28px;color:var(--ink-soft);font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;}
+.brandmark .icon{width:20px;height:20px;color:var(--accent);}
+.landing-wrap h1{
+  font-size:clamp(30px,5vw,44px);margin:0 0 14px;font-weight:700;letter-spacing:-.02em;line-height:1.1;
+}
+.landing-sub{font-size:16.5px;color:var(--ink-soft);max-width:520px;margin:0 auto 36px;line-height:1.55;}
+
+.dropzone{
+  border:2px dashed var(--line-strong);border-radius:var(--radius-l);background:var(--panel);
+  padding:52px 28px;cursor:pointer;transition:border-color .15s,background .15s,transform .1s;
+  position:relative;
+}
+.dropzone:hover{border-color:var(--accent);background:var(--accent-soft);}
+.dropzone.dragover{border-color:var(--accent);background:var(--accent-soft);transform:scale(1.008);}
+.dropzone.loading{border-color:var(--line-strong);cursor:progress;}
+.dropzone.error-state{border-color:var(--danger);background:var(--danger-soft);}
+.dropzone.success-state{border-color:var(--success);background:var(--success-soft);}
+.dz-icon-wrap{
+  width:64px;height:64px;border-radius:16px;background:var(--accent-soft);color:var(--accent);
+  display:flex;align-items:center;justify-content:center;margin:0 auto 18px;
+}
+.dropzone.error-state .dz-icon-wrap{background:var(--danger-soft);color:var(--danger);}
+.dropzone.success-state .dz-icon-wrap{background:var(--success-soft);color:var(--success);}
+.dz-icon-wrap .icon{width:30px;height:30px;}
+.dz-title{font-size:17px;font-weight:600;margin:0 0 6px;}
+.dz-hint{font-size:13.5px;color:var(--ink-soft);margin:0 0 22px;}
+.spinner{
+  width:28px;height:28px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--accent);
+  animation:spin .8s linear infinite;margin:0 auto 18px;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.privacy-note{
+  display:inline-flex;align-items:center;gap:8px;margin-top:26px;padding:9px 16px;border-radius:999px;
+  background:var(--accent-soft);color:var(--accent);font-size:13px;font-weight:600;
+}
+.privacy-note .icon{width:15px;height:15px;}
+.filetype-note{margin-top:14px;font-size:12.5px;color:var(--ink-faint);}
+
+.landing-alerts{max-width:560px;margin:22px auto 0;text-align:left;display:flex;flex-direction:column;gap:8px;}
+.alert-row{
+  display:flex;align-items:flex-start;gap:10px;padding:11px 13px;border-radius:var(--radius-s);
+  background:var(--danger-soft);color:var(--danger);font-size:13px;border:1px solid rgba(179,64,42,.18);
+}
+.alert-row .icon{width:16px;height:16px;flex:none;margin-top:1px;}
+.alert-row .alert-body strong{display:block;font-size:13px;margin-bottom:2px;}
+.alert-row button{background:none;border:none;color:inherit;text-decoration:underline;cursor:pointer;font-size:12.5px;padding:0;margin-top:4px;}
+
+/* ---------- Workspace ---------- */
+#screen-workspace{display:none;min-height:100vh;flex-direction:column;}
+.topbar{
+  position:sticky;top:0;z-index:30;height:var(--header-h);background:var(--panel);
+  border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;padding:0 20px;
+}
+.topbar-title{display:flex;align-items:center;gap:9px;font-weight:700;font-size:15px;white-space:nowrap;}
+.topbar-title .icon{width:20px;height:20px;color:var(--accent);}
+.topbar-stats{
+  display:flex;align-items:center;gap:14px;font-family:var(--font-mono);font-size:12px;color:var(--ink-soft);
+  padding-left:14px;border-left:1px solid var(--line);white-space:nowrap;
+}
+.topbar-stats b{color:var(--ink);font-weight:600;}
+.topbar-spacer{flex:1;}
+.topbar-actions{display:flex;align-items:center;gap:8px;}
+.zoom-group{display:flex;border:1px solid var(--line-strong);border-radius:8px;overflow:hidden;}
+.zoom-group button{
+  border:none;background:var(--panel);color:var(--ink-soft);font-family:var(--font-mono);font-size:12px;font-weight:600;
+  padding:7px 10px;cursor:pointer;border-left:1px solid var(--line);
+}
+.zoom-group button:first-child{border-left:none;}
+.zoom-group button.active{background:var(--accent);color:#fff;}
+.privacy-chip{
+  display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--success);font-weight:600;
+  background:var(--success-soft);padding:6px 10px;border-radius:999px;white-space:nowrap;
+}
+.privacy-chip .icon{width:13px;height:13px;}
+.select-menu-wrap{position:relative;}
+.select-menu{
+  position:absolute;top:calc(100% + 8px);right:0;background:var(--panel);border:1px solid var(--line);
+  border-radius:var(--radius-m);box-shadow:var(--shadow-m);min-width:220px;padding:6px;z-index:40;display:none;
+}
+.select-menu.open{display:block;}
+.select-menu button{
+  width:100%;text-align:left;background:none;border:none;padding:9px 10px;font-size:13.5px;border-radius:7px;
+  cursor:pointer;color:var(--ink);display:flex;align-items:center;gap:9px;
+}
+.select-menu button:hover{background:var(--accent-soft);color:var(--accent);}
+.select-menu .icon{width:16px;height:16px;}
+.select-menu hr{border:none;border-top:1px solid var(--line);margin:6px 2px;}
+
+.workspace-body{flex:1;display:flex;min-height:0;}
+.main-col{flex:1;min-width:0;padding:22px 22px 120px;overflow:visible;}
+.main-col-inner{max-width:980px;}
+.output-col{
+  width:360px;flex:none;border-left:1px solid var(--line);background:var(--panel);
+}
+.output-sticky{position:sticky;top:var(--header-h);height:calc(100vh - var(--header-h));display:flex;flex-direction:column;}
+
+.section-heading-row{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px;}
+.section-heading-row h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);margin:0;font-weight:700;}
+
+/* File section (folder tab motif) */
+.file-section{margin-bottom:22px;}
+.folder-tab{
+  display:inline-flex;align-items:center;gap:8px;padding:8px 16px 10px;border-radius:10px 10px 0 0;
+  background:var(--panel);border:1px solid var(--line);border-bottom:none;position:relative;top:1px;
+  max-width:100%;
+}
+.folder-tab .swatch{width:9px;height:9px;border-radius:50%;flex:none;}
+.folder-tab .fname{
+  font-family:var(--font-mono);font-size:12.5px;font-weight:600;color:var(--ink);white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;max-width:260px;
+}
+.folder-tab .fname-input{
+  font-family:var(--font-mono);font-size:12.5px;font-weight:600;border:1px solid var(--accent);border-radius:5px;
+  padding:2px 5px;max-width:220px;
+}
+.folder-tab .rename-btn{width:22px;height:22px;padding:0;color:var(--ink-faint);}
+.folder-tab .rename-btn .icon{width:13px;height:13px;}
+
+.file-card{
+  background:var(--panel);border:1px solid var(--line);border-radius:0 var(--radius-m) var(--radius-m) var(--radius-m);
+  box-shadow:var(--shadow-s);overflow:hidden;
+}
+.file-card-header{
+  display:flex;align-items:center;gap:12px;padding:14px 16px;flex-wrap:wrap;border-bottom:1px solid var(--line);
+}
+.file-meta{font-family:var(--font-mono);font-size:12px;color:var(--ink-soft);white-space:nowrap;}
+.file-header-spacer{flex:1;min-width:12px;}
+.file-header-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.collapse-btn .icon{transition:transform .15s;}
+.file-card.collapsed .collapse-btn .icon{transform:rotate(-90deg);}
+.file-card.collapsed .thumb-grid,
+.file-card.collapsed .range-tools{display:none;}
+
+.range-tools{
+  display:flex;align-items:center;gap:8px;padding:10px 16px;background:var(--paper);border-bottom:1px solid var(--line);
+  flex-wrap:wrap;font-size:12.5px;color:var(--ink-soft);
+}
+.range-tools input[type=number]{
+  width:56px;padding:5px 6px;border:1px solid var(--line-strong);border-radius:6px;font-family:var(--font-mono);font-size:12.5px;
+}
+.thumb-progress{padding:8px 16px;font-size:12px;color:var(--ink-soft);font-family:var(--font-mono);background:var(--paper);border-bottom:1px solid var(--line);}
+
+.thumb-grid{
+  display:grid;gap:14px;padding:16px;
+  grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+}
+.thumb-grid.zoom-sm{grid-template-columns:repeat(auto-fill,minmax(108px,1fr));}
+.thumb-grid.zoom-lg{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));}
+
+.page-card{
+  border:2px solid var(--line);border-radius:var(--radius-m);background:var(--paper);position:relative;
+  cursor:pointer;transition:border-color .12s,background .12s;overflow:hidden;
+}
+.page-card:hover{border-color:var(--line-strong);}
+.page-card.selected{border-color:var(--accent);background:var(--accent-soft);}
+.page-card .thumb-frame{
+  aspect-ratio:3/4;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;
+  border-bottom:1px solid var(--line);position:relative;
+}
+.page-card .thumb-frame img{width:100%;height:100%;object-fit:contain;}
+.page-card .thumb-loading,.page-card .thumb-error{
+  display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--ink-faint);font-size:11px;padding:10px;text-align:center;
+}
+.page-card .thumb-error{color:var(--danger);}
+.page-card .thumb-error .icon{width:20px;height:20px;}
+.page-card .check{
+  position:absolute;top:7px;left:7px;width:22px;height:22px;border-radius:6px;background:#fff;border:1.5px solid var(--line-strong);
+  display:flex;align-items:center;justify-content:center;z-index:2;
+}
+.page-card.selected .check{background:var(--accent);border-color:var(--accent);color:#fff;}
+.page-card .check .icon{width:14px;height:14px;opacity:0;}
+.page-card.selected .check .icon{opacity:1;}
+.page-card .order-chip{
+  position:absolute;top:6px;right:6px;min-width:22px;height:22px;padding:0 6px;border-radius:6px;
+  background:var(--tab);color:#fff;font-family:var(--font-mono);font-size:11.5px;font-weight:700;
+  display:none;align-items:center;justify-content:center;z-index:2;transform:rotate(2deg);box-shadow:var(--shadow-s);
+}
+.page-card.selected .order-chip{display:flex;}
+.page-card .drag-handle{
+  position:absolute;bottom:6px;left:6px;width:22px;height:22px;border-radius:6px;background:rgba(255,255,255,.9);
+  display:flex;align-items:center;justify-content:center;color:var(--ink-faint);cursor:grab;z-index:2;
+}
+.page-card .card-actions{
+  position:absolute;bottom:6px;right:6px;display:flex;gap:4px;z-index:2;
+}
+.page-card .card-actions button{
+  width:22px;height:22px;border-radius:6px;background:rgba(255,255,255,.9);border:none;color:var(--ink-soft);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+}
+.page-card .card-actions button:hover{background:#fff;color:var(--accent);}
+.page-card .card-actions .icon{width:13px;height:13px;}
+.page-card .page-label{
+  padding:6px 8px;font-family:var(--font-mono);font-size:11px;color:var(--ink-soft);display:flex;justify-content:space-between;
+}
+.page-card.dragging{opacity:.4;}
+
+/* Output panel */
+.output-header{padding:16px;border-bottom:1px solid var(--line);}
+.output-header-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+.output-header h2{font-size:14.5px;margin:0;font-weight:700;}
+.output-count{font-family:var(--font-mono);font-size:12px;color:var(--ink-soft);}
+.output-list{flex:1;overflow-y:auto;padding:10px;}
+.output-empty{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+  padding:40px 20px;color:var(--ink-faint);gap:10px;height:100%;
+}
+.output-empty .icon{width:36px;height:36px;opacity:.5;}
+.output-empty p{font-size:13px;margin:0;max-width:220px;line-height:1.5;}
+
+.output-item{
+  display:flex;align-items:center;gap:10px;padding:8px;border-radius:var(--radius-s);background:var(--panel);
+  border:1px solid var(--line);margin-bottom:8px;cursor:grab;
+}
+.output-item.drag-over-top{border-top:2px solid var(--accent);}
+.output-item.drag-over-bottom{border-bottom:2px solid var(--accent);}
+.output-item .order-num{
+  font-family:var(--font-mono);font-size:11.5px;font-weight:700;color:#fff;background:var(--tab);
+  width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex:none;
+}
+.output-item .out-thumb{
+  width:34px;height:44px;border-radius:4px;overflow:hidden;background:#fff;border:1px solid var(--line);flex:none;
+}
+.output-item .out-thumb img{width:100%;height:100%;object-fit:contain;}
+.output-item .out-info{flex:1;min-width:0;}
+.output-item .out-fname{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.output-item .out-pg{font-family:var(--font-mono);font-size:11px;color:var(--ink-soft);}
+.output-item .out-actions{display:flex;flex-direction:column;gap:2px;}
+.output-item .out-actions .row{display:flex;gap:2px;}
+.output-item .out-actions button{width:22px;height:22px;padding:0;border-radius:5px;}
+.output-item .out-actions .icon{width:12px;height:12px;}
+
+.output-footer{padding:14px 16px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:10px;}
+.output-footer .btn{width:100%;}
+.combine-disabled-hint{font-size:12px;color:var(--ink-soft);text-align:center;}
+
+/* Mobile tabs + bottom bar */
+.mobile-tabs{display:none;position:sticky;top:var(--header-h);z-index:20;background:var(--panel);border-bottom:1px solid var(--line);}
+.mobile-tabs .tabrow{display:flex;}
+.mobile-tabs button{
+  flex:1;padding:11px;border:none;background:none;font-size:13px;font-weight:600;color:var(--ink-soft);
+  border-bottom:2px solid transparent;cursor:pointer;
+}
+.mobile-tabs button.active{color:var(--accent);border-color:var(--accent);}
+.sticky-bottom-bar{
+  display:none;position:fixed;left:0;right:0;bottom:0;z-index:35;background:var(--panel);border-top:1px solid var(--line);
+  padding:10px 16px;align-items:center;gap:12px;padding-bottom:calc(10px + env(safe-area-inset-bottom));
+}
+.sticky-bottom-bar .count{font-size:12.5px;color:var(--ink-soft);font-family:var(--font-mono);}
+.sticky-bottom-bar .count b{color:var(--ink);}
+.sticky-bottom-bar .btn{flex:1;}
+
+/* Modals */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(27,29,31,.5);display:none;align-items:center;justify-content:center;
+  z-index:100;padding:20px;
+}
+.modal-overlay.open{display:flex;}
+.modal{
+  background:var(--panel);border-radius:var(--radius-l);box-shadow:var(--shadow-l);max-width:520px;width:100%;
+  max-height:90vh;overflow-y:auto;
+}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:20px 22px 0;}
+.modal-header h3{font-size:18px;margin:0;font-weight:700;}
+.modal-body{padding:16px 22px 6px;}
+.modal-footer{padding:16px 22px 22px;display:flex;gap:10px;justify-content:flex-end;}
+.field{margin-bottom:16px;}
+.field label{display:block;font-size:12.5px;font-weight:600;color:var(--ink-soft);margin-bottom:6px;}
+.field input[type=text],.field input[type=password],.field select{
+  width:100%;padding:10px 12px;border:1px solid var(--line-strong);border-radius:8px;font-size:14px;font-family:inherit;
+}
+.field-row{display:flex;gap:12px;}
+.field-row .field{flex:1;}
+.checkline{display:flex;align-items:center;gap:9px;font-size:13.5px;margin-bottom:12px;}
+.checkline input{width:16px;height:16px;}
+.summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.summary-item{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:10px 12px;}
+.summary-item .lab{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);margin-bottom:3px;}
+.summary-item .val{font-family:var(--font-mono);font-size:14px;font-weight:600;}
+.order-strip{display:flex;gap:6px;overflow-x:auto;padding:4px 0 10px;}
+.order-strip .mini{width:38px;height:50px;border-radius:4px;border:1px solid var(--line);background:#fff;flex:none;overflow:hidden;}
+.order-strip .mini img{width:100%;height:100%;object-fit:contain;}
+.order-strip .more{display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:11px;color:var(--ink-soft);}
+details.advanced{border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin-bottom:6px;}
+details.advanced summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--accent);}
+details.advanced .adv-body{margin-top:12px;}
+.privacy-line{
+  display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--success);background:var(--success-soft);
+  padding:9px 12px;border-radius:8px;margin-bottom:16px;
+}
+.privacy-line .icon{width:15px;height:15px;flex:none;}
+
+.progress-stage-list{display:flex;flex-direction:column;gap:10px;margin:8px 0 4px;}
+.progress-stage{display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--ink-faint);}
+.progress-stage .dot{width:20px;height:20px;border-radius:50%;border:2px solid var(--line-strong);flex:none;display:flex;align-items:center;justify-content:center;}
+.progress-stage.active{color:var(--ink);}
+.progress-stage.active .dot{border-color:var(--accent);}
+.progress-stage.active .dot::after{content:'';width:9px;height:9px;border-radius:50%;background:var(--accent);animation:pulse 1s ease-in-out infinite;}
+.progress-stage.done{color:var(--ink);}
+.progress-stage.done .dot{background:var(--success);border-color:var(--success);color:#fff;}
+.progress-stage.done .dot .icon{width:12px;height:12px;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+.success-icon{width:56px;height:56px;border-radius:50%;background:var(--success-soft);color:var(--success);display:flex;align-items:center;justify-content:center;margin:6px auto 16px;}
+.success-icon .icon{width:28px;height:28px;}
+.success-title{text-align:center;font-size:19px;font-weight:700;margin:0 0 6px;}
+.success-sub{text-align:center;font-size:13.5px;color:var(--ink-soft);margin:0 0 20px;}
+.success-actions{display:flex;flex-direction:column;gap:9px;}
+.success-actions .row2{display:flex;gap:9px;}
+.success-actions .row2 .btn{flex:1;}
+
+/* Preview modal (full screen) */
+.preview-overlay{position:fixed;inset:0;background:rgba(17,18,20,.96);display:none;flex-direction:column;z-index:110;}
+.preview-overlay.open{display:flex;}
+.preview-top{display:flex;align-items:center;gap:10px;padding:14px 18px;color:#fff;flex-wrap:wrap;}
+.preview-top .pv-fname{font-size:13px;font-weight:600;font-family:var(--font-mono);color:#EDEDEA;}
+.preview-top .pv-pageinfo{font-size:12px;color:#B7B9B4;}
+.preview-top .spacer{flex:1;}
+.preview-overlay .btn-icon{color:#EDEDEA;}
+.preview-overlay .btn-icon:hover{background:rgba(255,255,255,.12);color:#fff;}
+.preview-overlay .btn-secondary{background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.2);}
+.preview-stage{flex:1;display:flex;align-items:center;justify-content:center;position:relative;overflow:auto;padding:20px;}
+.preview-stage canvas{background:#fff;box-shadow:0 10px 40px rgba(0,0,0,.5);}
+.preview-nav{
+  position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;
+  background:rgba(255,255,255,.12);border:none;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;
+}
+.preview-nav:hover{background:rgba(255,255,255,.22);}
+.preview-nav.prev{left:16px;}
+.preview-nav.next{right:16px;}
+.preview-bottom{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 18px;flex-wrap:wrap;}
+
+/* Toasts */
+.toast-stack{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:150;display:flex;flex-direction:column;gap:8px;width:calc(100% - 40px);max-width:420px;}
+.toast{
+  background:var(--ink);color:#fff;border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:10px;
+  box-shadow:var(--shadow-m);font-size:13px;
+}
+.toast.warn{background:#8a5a19;}
+.toast.error{background:var(--danger);}
+.toast.success{background:var(--success);}
+.toast .icon{width:16px;height:16px;flex:none;}
+.toast .msg{flex:1;line-height:1.4;}
+.toast button.action{background:none;border:none;color:#fff;text-decoration:underline;font-weight:600;cursor:pointer;font-size:12.5px;white-space:nowrap;}
+.toast button.close{background:none;border:none;color:rgba(255,255,255,.7);cursor:pointer;padding:2px;}
+
+/* Confirm dialog small */
+.confirm-modal .modal{max-width:420px;}
+
+/* Responsive */
+@media (max-width:1100px){
+  .output-col{display:none;}
+  .mobile-tabs{display:block;}
+  .sticky-bottom-bar{display:flex;}
+  .main-col{padding-bottom:100px;}
+}
+@media (min-width:1101px){
+  #mobile-output-panel{display:none;}
+}
+@media (max-width:720px){
+  .topbar{padding:0 12px;gap:8px;}
+  .topbar-stats{display:none;}
+  .privacy-chip,#add-more-btn,#combine-btn{display:none;}
+  .topbar-title{font-size:13px;}
+  .main-col{padding:16px 12px 110px;}
+  .thumb-grid{grid-template-columns:repeat(2,1fr);gap:10px;padding:12px;}
+  .thumb-grid.zoom-sm{grid-template-columns:repeat(3,1fr);}
+  .thumb-grid.zoom-lg{grid-template-columns:repeat(2,1fr);}
+  .zoom-group{display:none;}
+  .dropzone{padding:34px 16px;}
+  .landing-wrap{padding-top:0;}
+  #screen-landing{padding:40px 16px 30px;}
+  .modal{border-radius:16px;}
+  .btn{min-height:44px;}
+  .btn-sm,.btn-icon{min-height:44px;min-width:44px;}
+}
+</style>
+</head>
+<body>
+
+<div aria-live="polite" class="visually-hidden" id="sr-status"></div>
+
+<!-- ============ LANDING SCREEN ============ -->
+<section id="screen-landing">
+  <div class="landing-wrap">
+    <div class="brandmark">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M8 3h6l4 4v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M14 3v4h4"/></svg>
+      Local PDF Combiner
+    </div>
+    <h1>Combine PDF Files</h1>
+    <p class="landing-sub">Merge whole PDFs or pick just the pages you need, put them in any order, and export one combined document — entirely on this device.</p>
+
+    <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Choose or drop PDF files to begin">
+      <div id="dz-default-state">
+        <div class="dz-icon-wrap"><svg class="icon" viewBox="0 0 24 24"><path d="M12 16V4"/><path d="M6 10l6-6 6 6"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg></div>
+        <p class="dz-title">Drag and drop PDF files here</p>
+        <p class="dz-hint">or choose files from your device</p>
+        <button class="btn btn-primary" id="choose-files-btn" type="button">Choose PDF Files</button>
+      </div>
+      <div id="dz-loading-state" style="display:none;">
+        <div class="spinner"></div>
+        <p class="dz-title" id="dz-loading-text">Reading your files…</p>
+        <p class="dz-hint">This happens locally in your browser.</p>
+      </div>
+      <input type="file" id="file-input" accept="application/pdf,.pdf" multiple class="visually-hidden" tabindex="-1">
+    </div>
+
+    <div class="privacy-note"><svg class="icon" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Your files stay on your device</div>
+    <p class="filetype-note">Supports PDF files only</p>
+
+    <div class="landing-alerts" id="landing-alerts"></div>
+  </div>
+</section>
+
+<!-- ============ WORKSPACE SCREEN ============ -->
+<section id="screen-workspace">
+  <header class="topbar">
+    <div class="topbar-title">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M8 3h6l4 4v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M14 3v4h4"/></svg>
+      <span>PDF Combiner</span>
+    </div>
+    <div class="topbar-stats">
+      <span><b id="stat-files">0</b> files</span>
+      <span><b id="stat-pages">0</b> pages</span>
+      <span><b id="stat-selected">0</b> selected</span>
+    </div>
+    <div class="topbar-spacer"></div>
+    <div class="topbar-actions">
+      <span class="privacy-chip"><svg class="icon" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>On this device</span>
+      <div class="zoom-group" role="group" aria-label="Thumbnail size">
+        <button data-zoom="sm" aria-label="Small thumbnails">S</button>
+        <button data-zoom="md" class="active" aria-label="Medium thumbnails">M</button>
+        <button data-zoom="lg" aria-label="Large thumbnails">L</button>
+      </div>
+      <div class="select-menu-wrap">
+        <button class="btn btn-secondary btn-sm" id="selection-menu-btn" aria-haspopup="true" aria-expanded="false">Selection ▾</button>
+        <div class="select-menu" id="selection-menu">
+          <button data-action="select-all"><svg class="icon" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>Select all pages</button>
+          <button data-action="clear-selection"><svg class="icon" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>Clear selection</button>
+          <button data-action="invert-selection"><svg class="icon" viewBox="0 0 24 24"><path d="M17 3a9 9 0 1 0 0 18"/></svg>Invert selection</button>
+          <hr>
+          <button data-action="select-odd">Select odd pages</button>
+          <button data-action="select-even">Select even pages</button>
+        </div>
+      </div>
+      <button class="btn btn-secondary btn-sm" id="add-more-btn">Add PDFs</button>
+      <button class="btn btn-primary btn-sm" id="combine-btn" disabled>Combine PDF</button>
+    </div>
+  </header>
+
+  <input type="file" id="file-input-more" accept="application/pdf,.pdf" multiple class="visually-hidden">
+
+  <nav class="mobile-tabs">
+    <div class="tabrow">
+      <button data-tab="files" class="active">Files</button>
+      <button data-tab="output">Output <span id="mobile-output-count"></span></button>
+    </div>
+  </nav>
+
+  <div class="workspace-body">
+    <div class="main-col" id="main-col">
+      <div class="main-col-inner" id="file-sections"></div>
+    </div>
+
+    <aside class="output-col" id="desktop-output-panel"></aside>
+  </div>
+
+  <div id="mobile-output-panel" style="display:none;"></div>
+
+  <div class="sticky-bottom-bar" id="sticky-bottom-bar">
+    <span class="count"><b id="bottom-count">0</b> pages selected</span>
+    <button class="btn btn-primary" id="combine-btn-mobile" disabled>Combine PDF</button>
+  </div>
+</section>
+
+<!-- Output panel template (rendered into desktop/mobile containers) -->
+<template id="output-panel-template">
+  <div class="output-sticky">
+    <div class="output-header">
+      <div class="output-header-row">
+        <h2>Combined PDF</h2>
+        <button class="btn-ghost btn-sm" data-action="clear-output" style="font-size:12px;">Clear all</button>
+      </div>
+      <span class="output-count"><b class="out-count-num">0</b> pages in export order</span>
+    </div>
+    <div class="output-list"></div>
+    <div class="output-footer">
+      <button class="btn btn-primary combine-trigger" disabled>Combine PDF</button>
+      <p class="combine-disabled-hint" data-hint>Select pages from your PDFs to build the combined document.</p>
+    </div>
+  </div>
+</template>
+
+<!-- ============ EXPORT DIALOG ============ -->
+<div class="modal-overlay" id="export-overlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="export-title">
+    <div class="modal-header"><h3 id="export-title">Combine PDF</h3><button class="btn-icon" id="export-close" aria-label="Close"><svg class="icon" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="modal-body">
+      <div class="privacy-line"><svg class="icon" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Your PDF will be created on this device. No files are uploaded.</div>
+      <div class="field">
+        <label for="output-filename">Output filename</label>
+        <input type="text" id="output-filename" value="combined-document.pdf">
+      </div>
+      <div class="summary-grid">
+        <div class="summary-item"><div class="lab">Pages</div><div class="val" id="sum-pages">0</div></div>
+        <div class="summary-item"><div class="lab">Source files</div><div class="val" id="sum-files">0</div></div>
+        <div class="summary-item"><div class="lab">Estimated size</div><div class="val" id="sum-size">—</div></div>
+        <div class="summary-item"><div class="lab">Page order</div><div class="val" id="sum-order-label">Custom</div></div>
+      </div>
+      <div class="field" style="margin-bottom:6px;">
+        <label>Page order preview</label>
+        <div class="order-strip" id="order-strip"></div>
+      </div>
+      <details class="advanced">
+        <summary>Advanced options</summary>
+        <div class="adv-body">
+          <div class="field">
+            <label for="orientation-select">Page orientation</label>
+            <select id="orientation-select">
+              <option value="keep">Keep original orientation</option>
+              <option value="portrait">Force portrait (rotate landscape pages)</option>
+              <option value="landscape">Force landscape (rotate portrait pages)</option>
+            </select>
+          </div>
+          <label class="checkline"><input type="checkbox" id="preserve-size-check" checked> Preserve each page's original size</label>
+          <div class="field-row">
+            <div class="field"><label for="meta-title">Title</label><input type="text" id="meta-title" placeholder="Optional"></div>
+            <div class="field"><label for="meta-author">Author</label><input type="text" id="meta-author" placeholder="Optional"></div>
+          </div>
+          <div class="field"><label for="meta-subject">Subject</label><input type="text" id="meta-subject" placeholder="Optional"></div>
+        </div>
+      </details>
+      <div id="progress-wrap" style="display:none;">
+        <div class="progress-stage-list" id="progress-stages"></div>
+      </div>
+      <div id="export-error" style="display:none;margin-top:6px;" class="alert-row">
+        <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+        <div class="alert-body"><strong id="export-error-title">Couldn't create the PDF</strong><span id="export-error-msg"></span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="export-cancel">Cancel</button>
+      <button class="btn btn-primary" id="export-confirm">Create Combined PDF</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SUCCESS DIALOG ============ -->
+<div class="modal-overlay" id="success-overlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="success-title">
+    <div class="modal-body" style="padding-top:26px;">
+      <div class="success-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div>
+      <p class="success-title" id="success-title">Your combined PDF is ready</p>
+      <p class="success-sub" id="success-sub"></p>
+      <div class="summary-grid">
+        <div class="summary-item"><div class="lab">Filename</div><div class="val" id="succ-filename" style="font-size:12px;">—</div></div>
+        <div class="summary-item"><div class="lab">Pages</div><div class="val" id="succ-pages">0</div></div>
+        <div class="summary-item" style="grid-column:span 2;"><div class="lab">File size</div><div class="val" id="succ-size">—</div></div>
+      </div>
+      <div class="success-actions">
+        <button class="btn btn-primary" id="succ-download">Download PDF</button>
+        <div class="row2">
+          <button class="btn btn-secondary" id="succ-preview">Preview Combined PDF</button>
+          <button class="btn btn-secondary" id="succ-return">Return to Editing</button>
+        </div>
+        <button class="btn btn-ghost" id="succ-new">Create Another PDF</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ PASSWORD MODAL ============ -->
+<div class="modal-overlay" id="password-overlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="pw-title">
+    <div class="modal-header"><h3 id="pw-title">Password protected</h3></div>
+    <div class="modal-body">
+      <p style="font-size:13.5px;color:var(--ink-soft);margin-top:0;" id="pw-desc">This file is locked. Enter its password to open it.</p>
+      <div class="field">
+        <label for="pw-input">Password for <span id="pw-fname" style="font-weight:700;color:var(--ink);"></span></label>
+        <div style="display:flex;gap:8px;">
+          <input type="password" id="pw-input" style="flex:1;">
+          <button class="btn btn-secondary btn-sm" id="pw-toggle" type="button">Show</button>
+        </div>
+        <p id="pw-error" style="color:var(--danger);font-size:12.5px;margin:8px 0 0;display:none;">That password wasn't correct. Try again.</p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="pw-skip">Remove file &amp; continue</button>
+      <button class="btn btn-primary" id="pw-submit">Unlock</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ CONFIRM MODAL ============ -->
+<div class="modal-overlay confirm-modal" id="confirm-overlay">
+  <div class="modal" role="alertdialog" aria-modal="true">
+    <div class="modal-header"><h3 id="confirm-title">Are you sure?</h3></div>
+    <div class="modal-body"><p id="confirm-msg" style="color:var(--ink-soft);font-size:13.5px;"></p></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="confirm-cancel">Cancel</button>
+      <button class="btn btn-danger" id="confirm-ok" style="background:var(--danger);color:#fff;">Remove</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ FULL PREVIEW ============ -->
+<div class="preview-overlay" id="preview-overlay">
+  <div class="preview-top">
+    <button class="btn-icon" id="pv-close" aria-label="Close preview"><svg class="icon" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <span class="pv-fname" id="pv-fname"></span>
+    <span class="pv-pageinfo" id="pv-pageinfo"></span>
+    <div class="spacer"></div>
+    <label style="display:flex;align-items:center;gap:6px;color:#EDEDEA;font-size:12.5px;">
+      <input type="checkbox" id="pv-select-check"> Selected
+    </label>
+  </div>
+  <div class="preview-stage" id="preview-stage">
+    <button class="preview-nav prev" id="pv-prev" aria-label="Previous page"><svg class="icon" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <canvas id="pv-canvas"></canvas>
+    <button class="preview-nav next" id="pv-next" aria-label="Next page"><svg class="icon" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button>
+  </div>
+  <div class="preview-bottom">
+    <button class="btn btn-secondary btn-sm" id="pv-zoom-out" aria-label="Zoom out">−</button>
+    <button class="btn btn-secondary btn-sm" id="pv-zoom-in" aria-label="Zoom in">+</button>
+    <button class="btn btn-secondary btn-sm" id="pv-fit-width">Fit width</button>
+    <button class="btn btn-secondary btn-sm" id="pv-fit-page">Fit page</button>
+    <button class="btn btn-secondary btn-sm" id="pv-rotate">Rotate</button>
+    <label style="display:flex;align-items:center;gap:6px;color:#EDEDEA;font-size:12px;margin-left:4px;">
+      <input type="checkbox" id="pv-apply-rotation"> Apply rotation to output
+    </label>
+  </div>
+</div>
+
+<div class="toast-stack" id="toast-stack"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------------- Setup / feature check ---------------- */
+if(!window.pdfjsLib || !window.PDFLib){
+  document.addEventListener('DOMContentLoaded', function(){
+    showBanner("This browser couldn't load the PDF engine needed to run locally. Check your connection and reload the page, or try another browser.");
+  });
+}
+if(window.pdfjsLib){
+  pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+}
+
+function showBanner(msg){
+  var el = document.createElement('div');
+  el.style.cssText = "position:fixed;top:0;left:0;right:0;background:#B3402A;color:#fff;padding:12px 16px;font-size:13.5px;text-align:center;z-index:999;font-family:sans-serif;";
+  el.textContent = msg;
+  document.body.prepend(el);
+}
+
+/* ---------------- Helpers ---------------- */
+var $ = function(sel, root){ return (root||document).querySelector(sel); };
+var $$ = function(sel, root){ return Array.prototype.slice.call((root||document).querySelectorAll(sel)); };
+var uidCounter = 1;
+function uid(){ return 'id' + (uidCounter++) + '_' + Math.random().toString(36).slice(2,8); }
+function formatBytes(bytes){
+  if(bytes == null) return '—';
+  if(bytes < 1024) return bytes + ' B';
+  var units = ['KB','MB','GB'];
+  var v = bytes;
+  for(var i=0;i<units.length;i++){
+    v = v/1024;
+    if(v < 1024) return v.toFixed(v<10?2:1) + ' ' + units[i];
+  }
+  return v.toFixed(1) + ' TB';
+}
+function announce(msg){
+  var el = $('#sr-status');
+  el.textContent = '';
+  setTimeout(function(){ el.textContent = msg; }, 30);
+}
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+
+var FILE_COLORS = ['#2F5D8A','#2E7D53','#8C4FA0','#B3402A','#0E7C86','#946A1A','#3D5AA6','#7A6A2E'];
+var colorIndex = 0;
+function nextColor(){ var c = FILE_COLORS[colorIndex % FILE_COLORS.length]; colorIndex++; return c; }
+
+/* ---------------- Toasts ---------------- */
+function showToast(opts){
+  opts = opts || {};
+  var stack = $('#toast-stack');
+  var el = document.createElement('div');
+  el.className = 'toast' + (opts.type ? ' '+opts.type : '');
+  var iconPath = opts.type === 'error' ? '<circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/>' :
+                 opts.type === 'success' ? '<path d="M20 6L9 17l-5-5"/>' :
+                 '<circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/>';
+  el.innerHTML = '<svg class="icon" viewBox="0 0 24 24">'+iconPath+'</svg>' +
+    '<span class="msg">'+escapeHtml(opts.message||'')+'</span>' +
+    (opts.actionLabel ? '<button class="action">'+escapeHtml(opts.actionLabel)+'</button>' : '') +
+    '<button class="close" aria-label="Dismiss">&times;</button>';
+  stack.appendChild(el);
+  var timer = setTimeout(remove, opts.duration || 6000);
+  function remove(){ clearTimeout(timer); if(el.parentNode) el.parentNode.removeChild(el); }
+  el.querySelector('.close').addEventListener('click', remove);
+  if(opts.actionLabel){
+    el.querySelector('.action').addEventListener('click', function(){
+      remove();
+      if(opts.onAction) opts.onAction();
+    });
+  }
+  return remove;
+}
+
+/* ---------------- Global state ---------------- */
+var state = {
+  files: [],       // {id,name,size,numPages,pdfjsDoc,bytes,color,collapsed,renamedTo,pages:[]}
+  output: [],       // array of page uid, in export order
+  zoom: 'md',
+  lastActiveFileId: null,
+  mobileTab: 'files',
+  lastGeneratedBlob: null,
+  lastGeneratedInfo: null,
+  previewUrl: null
+};
+var pendingDisposals = {};
+
+function allPages(){
+  var out = [];
+  state.files.forEach(function(f){ f.pages.forEach(function(p){ out.push(p); }); });
+  return out;
+}
+function findPage(uidStr){
+  for(var i=0;i<state.files.length;i++){
+    var f = state.files[i];
+    for(var j=0;j<f.pages.length;j++){
+      if(f.pages[j].uid === uidStr) return {page:f.pages[j], file:f};
+    }
+  }
+  return null;
+}
+function fileById(id){ return state.files.filter(function(f){return f.id===id;})[0]; }
+function totalPageCount(){ return state.files.reduce(function(s,f){return s+f.numPages;},0); }
+function selectedCount(){ return state.output.length; }
+
+/* Release PDF.js objects and large buffers as soon as a source is no longer
+   part of the project. This is important for multi-hundred-page documents. */
+function disposeFile(file){
+  if(!file) return;
+  renderQueue = renderQueue.filter(function(page){ return page.fileId !== file.id; });
+  file.pages.forEach(function(page){
+    page.thumb = null;
+    page.thumbLoading = false;
+  });
+  if(file.pdfjsDoc){
+    try { file.pdfjsDoc.cleanup(); } catch(_ignored) {}
+    try { file.pdfjsDoc.destroy(); } catch(_ignored2) {}
+  }
+  file.pdfjsDoc = null;
+  file.bytes = null;
+  file.password = null;
+  delete pdfDocCache[file.id];
+}
+
+function clearGeneratedOutput(){
+  if(state.previewUrl){
+    URL.revokeObjectURL(state.previewUrl);
+    state.previewUrl = null;
+  }
+  state.lastGeneratedBlob = null;
+  state.lastGeneratedInfo = null;
+}
+
+/* ---------------- Landing: file intake ---------------- */
+var dropzone = $('#dropzone');
+var fileInput = $('#file-input');
+var fileInputMore = $('#file-input-more');
+
+$('#choose-files-btn').addEventListener('click', function(e){ e.stopPropagation(); fileInput.click(); });
+dropzone.addEventListener('click', function(){ fileInput.click(); });
+dropzone.addEventListener('keydown', function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); fileInput.click(); } });
+['dragenter','dragover'].forEach(function(evt){
+  dropzone.addEventListener(evt, function(e){ e.preventDefault(); dropzone.classList.add('dragover'); });
+});
+['dragleave','drop'].forEach(function(evt){
+  dropzone.addEventListener(evt, function(e){ e.preventDefault(); dropzone.classList.remove('dragover'); });
+});
+dropzone.addEventListener('drop', function(e){
+  var dt = e.dataTransfer;
+  if(dt && dt.files && dt.files.length) handleIncomingFiles(dt.files, 'landing');
+});
+fileInput.addEventListener('change', function(){
+  if(fileInput.files.length) handleIncomingFiles(fileInput.files, 'landing');
+  fileInput.value = '';
+});
+$('#add-more-btn').addEventListener('click', function(){ fileInputMore.click(); });
+fileInputMore.addEventListener('change', function(){
+  if(fileInputMore.files.length) handleIncomingFiles(fileInputMore.files, 'workspace');
+  fileInputMore.value = '';
+});
+// workspace-level drag & drop onto main column
+var mainCol = $('#main-col');
+['dragenter','dragover'].forEach(function(evt){
+  mainCol.addEventListener(evt, function(e){
+    if(e.dataTransfer && Array.prototype.indexOf.call(e.dataTransfer.types||[], 'Files') !== -1){
+      e.preventDefault();
+    }
+  });
+});
+mainCol.addEventListener('drop', function(e){
+  if(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length && e.target.closest('.page-card')===null){
+    e.preventDefault();
+    handleIncomingFiles(e.dataTransfer.files, 'workspace');
+  }
+});
+
+function setLandingState(mode, text){
+  $('#dz-default-state').style.display = mode==='default' ? '' : 'none';
+  $('#dz-loading-state').style.display = mode==='loading' ? '' : 'none';
+  dropzone.classList.toggle('loading', mode==='loading');
+  if(mode==='loading' && text) $('#dz-loading-text').textContent = text;
+}
+
+function addLandingAlert(title, detail){
+  var wrap = $('#landing-alerts');
+  var row = document.createElement('div');
+  row.className = 'alert-row';
+  row.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>' +
+    '<div class="alert-body"><strong>'+escapeHtml(title)+'</strong><span>'+escapeHtml(detail)+'</span><br><button type="button">Dismiss</button></div>';
+  row.querySelector('button').addEventListener('click', function(){ row.remove(); });
+  wrap.prepend(row);
+}
+
+function handleIncomingFiles(fileList, origin){
+  var files = Array.prototype.slice.call(fileList);
+  if(!files.length) return;
+  if(origin==='landing') $('#landing-alerts').innerHTML='';
+
+  var valid = [];
+  files.forEach(function(f){
+    var isPdf = f.type === 'application/pdf' || /\.pdf$/i.test(f.name);
+    if(!isPdf){
+      if(origin==='landing') addLandingAlert('Unsupported file type', '"'+f.name+'" isn\u2019t a PDF. Only PDF files are supported.');
+      else showToast({type:'error', message:'"'+f.name+'" isn\u2019t a PDF and was skipped.'});
+      return;
+    }
+    var dup = state.files.some(function(sf){ return sf.name===f.name && sf.size===f.size; });
+    if(dup){
+      showToast({type:'warn', message:'"'+f.name+'" is already added.', actionLabel:'Add anyway', onAction:function(){ loadOneFile(f, origin, true); }});
+      return;
+    }
+    valid.push(f);
+  });
+  if(!valid.length) return;
+
+  if(origin==='landing') setLandingState('loading', valid.length>1 ? 'Reading '+valid.length+' files\u2026' : 'Reading your file\u2026');
+
+  var chain = Promise.resolve();
+  valid.forEach(function(f){
+    chain = chain.then(function(){ return loadOneFile(f, origin); });
+  });
+  chain.then(function(){
+    if(origin==='landing'){
+      if(state.files.length){
+        showWorkspace();
+      } else {
+        setLandingState('default');
+      }
+    }
+  });
+}
+
+function loadOneFile(file, origin, force){
+  if(file.size > 300*1024*1024){
+    showToast({type:'warn', message:'"'+file.name+'" is very large ('+formatBytes(file.size)+') and may be slow on this device.'});
+  }
+  return file.arrayBuffer().then(function(buf){
+    return tryOpenPdf(buf, file.name, file.size, null);
+  }).catch(function(err){
+    if(origin==='landing') addLandingAlert('Couldn\u2019t read file', '"'+file.name+'" could not be read from disk.');
+    else showToast({type:'error', message:'Couldn\u2019t read "'+file.name+'" from disk.'});
+  });
+}
+
+function tryOpenPdf(buf, name, size, password){
+  var params = { data: buf.slice(0) };
+  if(password) params.password = password;
+  var loadingTask = pdfjsLib.getDocument(params);
+  return loadingTask.promise.then(function(pdfDoc){
+    return onPdfOpened(pdfDoc, buf, name, size, password);
+  }).catch(function(err){
+    if(err && err.name === 'PasswordException'){
+      return promptForPassword(name).then(function(pw){
+        if(pw === null){ // skipped
+          return null;
+        }
+        return tryOpenPdf(buf, name, size, pw).catch(function(e2){
+          if(e2 && e2.name==='PasswordException'){
+            showToast({type:'error', message:'Incorrect password for "'+name+'".'});
+            return promptForPassword(name, true).then(function(pw2){
+              if(pw2===null) return null;
+              return tryOpenPdf(buf, name, size, pw2);
+            });
+          }
+          throw e2;
+        });
+      });
+    }
+    var msg = 'error';
+    if(err && /invalid pdf/i.test(err.message||'')) msg = 'damaged';
+    if(origin_isLanding()) {
+      addLandingAlert(msg==='damaged' ? 'Damaged or unreadable PDF' : 'Couldn\u2019t open file', '"'+name+'" '+(msg==='damaged' ? 'appears to be corrupted and can\u2019t be opened.' : 'could not be opened. It may be corrupted or not a valid PDF.'));
+    } else {
+      showToast({type:'error', message:'"'+name+'" could not be opened \u2014 it may be corrupted.'});
+    }
+    return null;
+  });
+}
+function origin_isLanding(){ return state.files.length === 0 && document.getElementById('screen-workspace').style.display !== 'flex'; }
+
+function onPdfOpened(pdfDoc, buf, name, size, password){
+  if(pdfDoc.numPages === 0){
+    showToast({type:'error', message:'"'+name+'" has no pages and was skipped.'});
+    return null;
+  }
+  var fileEntry = {
+    id: uid(), name: name, size: size, numPages: pdfDoc.numPages,
+    pdfjsDoc: pdfDoc, bytes: buf, color: nextColor(), collapsed:false, renamedTo:null,
+    password: password || null, pages: []
+  };
+  for(var i=0;i<pdfDoc.numPages;i++){
+    fileEntry.pages.push({
+      uid: uid(), fileId: fileEntry.id, pageIndex: i, rotation:0, applyRotation:false,
+      thumb:null, thumbLoading:false, thumbError:false, selected:false
+    });
+  }
+  state.files.push(fileEntry);
+  renderAll();
+  queueThumbnails(fileEntry);
+  return fileEntry;
+}
+
+/* ---------------- Password modal ---------------- */
+var pwResolve = null;
+function promptForPassword(name, isRetry){
+  return new Promise(function(resolve){
+    pwResolve = resolve;
+    $('#pw-fname').textContent = name;
+    $('#pw-desc').textContent = isRetry ? 'That password wasn\u2019t correct. Please try again.' : 'This file is locked. Enter its password to open it.';
+    $('#pw-error').style.display = isRetry ? 'block' : 'none';
+    $('#pw-input').value = '';
+    $('#pw-input').type = 'password';
+    $('#pw-toggle').textContent = 'Show';
+    $('#password-overlay').classList.add('open');
+    setTimeout(function(){ $('#pw-input').focus(); }, 50);
+  });
+}
+$('#pw-toggle').addEventListener('click', function(){
+  var inp = $('#pw-input');
+  var showing = inp.type === 'text';
+  inp.type = showing ? 'password' : 'text';
+  $('#pw-toggle').textContent = showing ? 'Show' : 'Hide';
+});
+$('#pw-submit').addEventListener('click', function(){
+  var val = $('#pw-input').value;
+  $('#password-overlay').classList.remove('open');
+  if(pwResolve) pwResolve(val);
+});
+$('#pw-input').addEventListener('keydown', function(e){ if(e.key==='Enter') $('#pw-submit').click(); });
+$('#pw-skip').addEventListener('click', function(){
+  $('#password-overlay').classList.remove('open');
+  if(pwResolve) pwResolve(null);
+});
+
+/* ---------------- Thumbnail rendering queue ---------------- */
+var renderQueue = [];
+var activeRenders = 0;
+var MAX_CONCURRENT = 3;
+
+function queueThumbnails(fileEntry){
+  fileEntry.pages.forEach(function(p){ renderQueue.push(p); });
+  pumpQueue();
+}
+function pumpQueue(){
+  while(activeRenders < MAX_CONCURRENT && renderQueue.length){
+    var p = renderQueue.shift();
+    activeRenders++;
+    renderOneThumbnail(p).finally(function(){
+      activeRenders--;
+      pumpQueue();
+    });
+  }
+}
+function renderOneThumbnail(page){
+  var file = fileById(page.fileId);
+  if(!file){ return Promise.resolve(); }
+  page.thumbLoading = true;
+  updatePageCardDom(page);
+  return file.pdfjsDoc.getPage(page.pageIndex+1).then(function(pdfPage){
+    var vp1 = pdfPage.getViewport({scale:1});
+    var targetW = 340;
+    var scale = targetW / vp1.width;
+    var viewport = pdfPage.getViewport({scale: scale});
+    var canvas = document.createElement('canvas');
+    canvas.width = Math.ceil(viewport.width);
+    canvas.height = Math.ceil(viewport.height);
+    var ctx = canvas.getContext('2d');
+    return pdfPage.render({canvasContext: ctx, viewport: viewport}).promise.then(function(){
+      page.thumb = canvas.toDataURL('image/jpeg', 0.78);
+      page.pageW = vp1.width; page.pageH = vp1.height;
+      page.thumbLoading = false;
+      updatePageCardDom(page);
+      updateOutputItemThumb(page);
+    });
+  }).catch(function(err){
+    page.thumbLoading = false;
+    page.thumbError = true;
+    updatePageCardDom(page);
+  });
+}
+
+/* ---------------- Screen switching ---------------- */
+function showWorkspace(){
+  $('#screen-landing').style.display = 'none';
+  $('#screen-workspace').style.display = 'flex';
+  renderAll();
+}
+function showLanding(){
+  $('#screen-workspace').style.display = 'none';
+  $('#screen-landing').style.display = 'flex';
+  setLandingState('default');
+}
+
+/* ---------------- Rendering ---------------- */
+function renderAll(){
+  renderStats();
+  renderFileSections();
+  renderOutputPanels();
+  updateCombineButtons();
+  $('#mobile-output-count').textContent = state.output.length ? '('+state.output.length+')' : '';
+}
+
+function renderStats(){
+  $('#stat-files').textContent = state.files.length;
+  $('#stat-pages').textContent = totalPageCount();
+  $('#stat-selected').textContent = selectedCount();
+  $('#bottom-count').textContent = selectedCount();
+}
+
+function updateCombineButtons(){
+  var enabled = state.output.length > 0;
+  $('#combine-btn').disabled = !enabled;
+  $('#combine-btn-mobile').disabled = !enabled;
+  $$('.combine-trigger').forEach(function(btn){ btn.disabled = !enabled; });
+  $$('[data-hint]').forEach(function(el){
+    el.style.display = enabled ? 'none' : 'block';
+  });
+}
+
+function fileDisplayName(f){ return f.renamedTo || f.name; }
+
+function renderFileSections(){
+  var wrap = $('#file-sections');
+  var scrollY = window.scrollY;
+  wrap.innerHTML = '';
+  if(!state.files.length){
+    wrap.innerHTML = '<p style="color:var(--ink-soft);font-size:14px;">No files yet.</p>';
+    return;
+  }
+  state.files.forEach(function(f){
+    var sec = document.createElement('div');
+    sec.className = 'file-section';
+    var loadedCount = f.pages.filter(function(p){return p.thumb || p.thumbError;}).length;
+    var selCount = f.pages.filter(function(p){return p.selected;}).length;
+
+    sec.innerHTML =
+      '<div class="folder-tab">'+
+        '<span class="swatch" style="background:'+f.color+';"></span>'+
+        '<span class="fname" data-fname>'+escapeHtml(fileDisplayName(f))+'</span>'+
+        '<button class="btn-icon rename-btn" data-action="rename" aria-label="Rename '+escapeHtml(fileDisplayName(f))+'"><svg class="icon" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></button>'+
+      '</div>'+
+      '<div class="file-card" data-fileid="'+f.id+'">'+
+        '<div class="file-card-header">'+
+          '<button class="btn-icon collapse-btn" data-action="collapse" aria-label="Collapse or expand"><svg class="icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>'+
+          '<span class="file-meta">'+formatBytes(f.size)+' \u00b7 '+f.numPages+' page'+(f.numPages===1?'':'s')+' \u00b7 <span data-selcount>'+selCount+'</span> selected</span>'+
+          '<div class="file-header-spacer"></div>'+
+          '<div class="file-header-actions">'+
+            '<button class="btn btn-secondary btn-sm" data-action="select-all-file">Select All Pages</button>'+
+            '<button class="btn btn-ghost btn-sm" data-action="deselect-all-file">Deselect All</button>'+
+            '<button class="btn-icon danger" data-action="remove-file" aria-label="Remove '+escapeHtml(fileDisplayName(f))+'"><svg class="icon" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>'+
+          '</div>'+
+        '</div>'+
+        '<div class="range-tools">'+
+          'Select range&nbsp;'+
+          '<input type="number" min="1" max="'+f.numPages+'" placeholder="from" data-range-from>'+
+          '&ndash;'+
+          '<input type="number" min="1" max="'+f.numPages+'" placeholder="to" data-range-to>'+
+          '<button class="btn btn-secondary btn-sm" data-action="apply-range">Select</button>'+
+        '</div>'+
+        (loadedCount < f.numPages ? '<div class="thumb-progress">Generating thumbnails\u2026 '+loadedCount+' / '+f.numPages+'</div>' : '')+
+        '<div class="thumb-grid zoom-'+state.zoom+'" data-thumbgrid></div>'+
+      '</div>';
+
+    if(f.collapsed) sec.querySelector('.file-card').classList.add('collapsed');
+
+    var grid = sec.querySelector('[data-thumbgrid]');
+    f.pages.forEach(function(p){ grid.appendChild(buildPageCard(p, f)); });
+
+    wrap.appendChild(sec);
+    wireFileSection(sec, f);
+  });
+  window.scrollTo(0, scrollY);
+}
+
+function buildPageCard(page, file){
+  var card = document.createElement('div');
+  card.className = 'page-card' + (page.selected ? ' selected' : '');
+  card.dataset.uid = page.uid;
+  card.setAttribute('draggable', 'true');
+  card.innerHTML =
+    '<div class="check" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div>'+
+    '<div class="order-chip" data-orderchip></div>'+
+    '<div class="thumb-frame" data-thumbframe></div>'+
+    '<div class="drag-handle" title="Drag to output" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/></svg></div>'+
+    '<div class="card-actions">'+
+      '<button data-action="preview" aria-label="Open larger preview"><svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg></button>'+
+      '<button data-action="remove-page" aria-label="Remove this page"><svg class="icon" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'+
+    '</div>'+
+    '<div class="page-label"><span>Page '+(page.pageIndex+1)+'</span><span>'+escapeHtml((file.renamedTo||file.name)).slice(0,14)+'</span></div>'+
+    '<input type="checkbox" class="visually-hidden" data-checkbox '+(page.selected?'checked':'')+' aria-label="Select page '+(page.pageIndex+1)+' of '+escapeHtml(file.renamedTo||file.name)+'">';
+  fillThumbFrame(card.querySelector('[data-thumbframe]'), page);
+  return card;
+}
+
+function fillThumbFrame(frame, page){
+  if(page.thumb){
+    frame.innerHTML = '<img src="'+page.thumb+'" alt="Preview of page '+(page.pageIndex+1)+'">';
+  } else if(page.thumbError){
+    frame.innerHTML = '<div class="thumb-error"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>Couldn\u2019t render</div>';
+  } else {
+    frame.innerHTML = '<div class="thumb-loading"><div class="spinner" style="width:20px;height:20px;margin:0;"></div>Loading\u2026</div>';
+  }
+}
+
+function updatePageCardDom(page){
+  var card = $('.page-card[data-uid="'+page.uid+'"]');
+  if(!card) return;
+  fillThumbFrame(card.querySelector('[data-thumbframe]'), page);
+  var f = fileById(page.fileId);
+  var sec = card.closest('.file-section');
+  if(sec){
+    var loaded = f.pages.filter(function(p){return p.thumb||p.thumbError;}).length;
+    var prog = sec.querySelector('.thumb-progress');
+    if(loaded >= f.numPages && prog) prog.remove();
+    else if(prog) prog.textContent = 'Generating thumbnails\u2026 '+loaded+' / '+f.numPages;
+  }
+}
+
+function refreshOrderChips(){
+  state.files.forEach(function(f){
+    f.pages.forEach(function(p){
+      var card = $('.page-card[data-uid="'+p.uid+'"]');
+      if(!card) return;
+      card.classList.toggle('selected', p.selected);
+      card.querySelector('[data-checkbox]').checked = p.selected;
+      var chip = card.querySelector('[data-orderchip]');
+      var idx = state.output.indexOf(p.uid);
+      chip.textContent = idx >= 0 ? (idx+1) : '';
+    });
+  });
+  $$('.file-card').forEach(function(fc){
+    var f = fileById(fc.dataset.fileid);
+    if(!f) return;
+    var count = f.pages.filter(function(p){return p.selected;}).length;
+    var el = fc.querySelector('[data-selcount]');
+    if(el) el.textContent = count;
+  });
+}
+
+function wireFileSection(sec, file){
+  var tab = sec.querySelector('.folder-tab');
+  tab.querySelector('[data-action="rename"]').addEventListener('click', function(){
+    var span = tab.querySelector('[data-fname]');
+    var input = document.createElement('input');
+    input.className = 'fname-input';
+    input.value = fileDisplayName(file);
+    span.replaceWith(input);
+    input.focus(); input.select();
+    function commit(){
+      var v = input.value.trim();
+      file.renamedTo = v || null;
+      renderFileSections();
+    }
+    input.addEventListener('blur', commit);
+    input.addEventListener('keydown', function(e){ if(e.key==='Enter') input.blur(); });
+  });
+
+  var card = sec.querySelector('.file-card');
+  card.querySelector('[data-action="collapse"]').addEventListener('click', function(){
+    file.collapsed = !file.collapsed;
+    card.classList.toggle('collapsed', file.collapsed);
+  });
+  card.querySelector('[data-action="select-all-file"]').addEventListener('click', function(){
+    file.pages.forEach(function(p){ if(!p.selected) setPageSelected(p, true); });
+    refreshOrderChips(); renderStats(); renderOutputPanels(); updateCombineButtons();
+    announce('All pages selected in '+fileDisplayName(file));
+  });
+  card.querySelector('[data-action="deselect-all-file"]').addEventListener('click', function(){
+    file.pages.forEach(function(p){ if(p.selected) setPageSelected(p, false); });
+    refreshOrderChips(); renderStats(); renderOutputPanels(); updateCombineButtons();
+    announce('Selection cleared in '+fileDisplayName(file));
+  });
+  card.querySelector('[data-action="remove-file"]').addEventListener('click', function(){
+    var hasSelected = file.pages.some(function(p){return p.selected;});
+    if(hasSelected){
+      confirmDialog('Remove '+fileDisplayName(file)+'?', 'This file has pages in your combined output. Removing it will take those pages out of the export too.', function(){
+        removeFile(file.id);
+      });
+    } else {
+      removeFile(file.id);
+    }
+  });
+  card.querySelector('[data-action="apply-range"]').addEventListener('click', function(){
+    var from = parseInt(card.querySelector('[data-range-from]').value, 10);
+    var to = parseInt(card.querySelector('[data-range-to]').value, 10);
+    if(!from || !to || from<1 || to>file.numPages || from>to){
+      showToast({type:'error', message:'Enter a valid page range between 1 and '+file.numPages+'.'});
+      return;
+    }
+    file.pages.forEach(function(p){
+      if(p.pageIndex+1 >= from && p.pageIndex+1 <= to) setPageSelected(p, true);
+    });
+    refreshOrderChips(); renderStats(); renderOutputPanels(); updateCombineButtons();
+    announce('Selected pages '+from+' to '+to+' in '+fileDisplayName(file));
+  });
+
+  var grid = card.querySelector('[data-thumbgrid]');
+  grid.addEventListener('click', function(e){
+    var actionBtn = e.target.closest('[data-action]');
+    var pcard = e.target.closest('.page-card');
+    if(!pcard) return;
+    var page = findPageByUid(pcard.dataset.uid);
+    if(!page) return;
+    state.lastActiveFileId = file.id;
+    if(actionBtn){
+      var action = actionBtn.dataset.action;
+      if(action === 'preview') openPreview(file.id, page.pageIndex);
+      else if(action === 'remove-page') removePage(page.uid);
+      return;
+    }
+    // toggle / shift-click range
+    if(e.shiftKey && state.shiftAnchor && state.shiftAnchor.fileId === file.id){
+      var a = state.shiftAnchor.pageIndex, b = page.pageIndex;
+      var lo = Math.min(a,b), hi = Math.max(a,b);
+      file.pages.forEach(function(p){ if(p.pageIndex>=lo && p.pageIndex<=hi) setPageSelected(p, true); });
+    } else {
+      setPageSelected(page, !page.selected);
+      state.shiftAnchor = {fileId:file.id, pageIndex:page.pageIndex};
+    }
+    refreshOrderChips(); renderStats(); renderOutputPanels(); updateCombineButtons();
+  });
+
+  // Drag source pages into output panel
+  grid.addEventListener('dragstart', function(e){
+    var pcard = e.target.closest('.page-card');
+    if(!pcard) return;
+    e.dataTransfer.setData('text/plain', JSON.stringify({type:'source-page', uid: pcard.dataset.uid}));
+    e.dataTransfer.effectAllowed = 'copy';
+    pcard.classList.add('dragging');
+  });
+  grid.addEventListener('dragend', function(e){
+    var pcard = e.target.closest('.page-card');
+    if(pcard) pcard.classList.remove('dragging');
+  });
+}
+
+function findPageByUid(u){ var r = findPage(u); return r ? r.page : null; }
+
+function setPageSelected(page, selected){
+  if(page.selected === selected) return;
+  page.selected = selected;
+  if(selected){
+    if(state.output.indexOf(page.uid) === -1) state.output.push(page.uid);
+  } else {
+    var idx = state.output.indexOf(page.uid);
+    if(idx>-1) state.output.splice(idx,1);
+  }
+}
+
+/* ---------------- Selection menu (global) ---------------- */
+var selMenuBtn = $('#selection-menu-btn');
+var selMenu = $('#selection-menu');
+selMenuBtn.addEventListener('click', function(){
+  var open = selMenu.classList.toggle('open');
+  selMenuBtn.setAttribute('aria-expanded', open);
+});
+document.addEventListener('click', function(e){
+  if(!e.target.closest('.select-menu-wrap')){ selMenu.classList.remove('open'); selMenuBtn.setAttribute('aria-expanded','false'); }
+});
+selMenu.addEventListener('click', function(e){
+  var btn = e.target.closest('button[data-action]');
+  if(!btn) return;
+  var action = btn.dataset.action;
+  var pages = allPages();
+  if(action === 'select-all') pages.forEach(function(p){ setPageSelected(p, true); });
+  if(action === 'clear-selection') pages.forEach(function(p){ setPageSelected(p, false); });
+  if(action === 'invert-selection') pages.forEach(function(p){ setPageSelected(p, !p.selected); });
+  if(action === 'select-odd') pages.forEach(function(p){ if((p.pageIndex+1)%2===1) setPageSelected(p, true); });
+  if(action === 'select-even') pages.forEach(function(p){ if((p.pageIndex+1)%2===0) setPageSelected(p, true); });
+  refreshOrderChips(); renderStats(); renderOutputPanels(); updateCombineButtons();
+  selMenu.classList.remove('open');
+  announce('Selection updated: ' + selectedCount() + ' pages selected');
+});
+
+/* ---------------- Zoom control ---------------- */
+$('.zoom-group').addEventListener('click', function(e){
+  var btn = e.target.closest('button[data-zoom]');
+  if(!btn) return;
+  state.zoom = btn.dataset.zoom;
+  $$('.zoom-group button').forEach(function(b){ b.classList.toggle('active', b===btn); });
+  $$('.thumb-grid').forEach(function(g){ g.className = 'thumb-grid zoom-'+state.zoom; });
+});
+
+/* ---------------- Remove page / file with undo ---------------- */
+function removePage(pageUid){
+  var res = findPage(pageUid);
+  if(!res) return;
+  var file = res.file, page = res.page;
+  var pageIdx = file.pages.indexOf(page);
+  var wasSelected = page.selected;
+  var outIdx = state.output.indexOf(page.uid);
+  file.pages.splice(pageIdx,1);
+  if(outIdx>-1) state.output.splice(outIdx,1);
+  file.numPages = file.pages.length;
+  renderAll();
+  var name = fileDisplayName(file);
+  showToast({
+    message: 'Page removed from '+name+'.',
+    actionLabel: 'Undo',
+    onAction: function(){
+      file.pages.splice(pageIdx,0,page);
+      file.numPages = file.pages.length;
+      if(wasSelected && outIdx>-1) state.output.splice(outIdx,0,page.uid);
+      renderAll();
+    }
+  });
+  /* Keep an emptied source section long enough for its page-level Undo action.
+     The user can remove the source itself from its header when ready. */
+}
+function removeFile(fileId, silent){
+  var idx = state.files.findIndex(function(f){return f.id===fileId;});
+  if(idx===-1) return;
+  var file = state.files[idx];
+  state.files.splice(idx,1);
+  state.output = state.output.filter(function(u){ return !file.pages.some(function(p){return p.uid===u;}); });
+  if(silent){
+    disposeFile(file);
+  } else {
+    /* Keep enough data for a short Undo window, then release it. */
+    pendingDisposals[file.id] = setTimeout(function(){
+      disposeFile(file);
+      delete pendingDisposals[file.id];
+    }, 8000);
+  }
+  renderAll();
+  if(!silent){
+    showToast({
+      message: '"'+fileDisplayName(file)+'" removed.',
+      actionLabel: 'Undo',
+      onAction: function(){
+        if(pendingDisposals[file.id]){
+          clearTimeout(pendingDisposals[file.id]);
+          delete pendingDisposals[file.id];
+        }
+        state.files.splice(idx,0,file);
+        renderAll();
+      }
+    });
+  }
+  if(state.files.length === 0){
+    showLanding();
+  }
+}
+
+/* ---------------- Confirm dialog ---------------- */
+var confirmResolve = null;
+function confirmDialog(title, msg, onConfirm){
+  $('#confirm-title').textContent = title;
+  $('#confirm-msg').textContent = msg;
+  $('#confirm-overlay').classList.add('open');
+  confirmResolve = onConfirm;
+}
+$('#confirm-cancel').addEventListener('click', function(){ $('#confirm-overlay').classList.remove('open'); confirmResolve=null; });
+$('#confirm-ok').addEventListener('click', function(){
+  $('#confirm-overlay').classList.remove('open');
+  if(confirmResolve) confirmResolve();
+  confirmResolve = null;
+});
+
+/* ---------------- Output panel(s) ---------------- */
+function renderOutputPanels(){
+  var tmpl = $('#output-panel-template');
+  var desktopHost = $('#desktop-output-panel');
+  var mobileHost = $('#mobile-output-panel');
+  [{host:desktopHost, mobile:false},{host:mobileHost, mobile:true}].forEach(function(cfg){
+    var host = cfg.host;
+    var scrollTop = 0;
+    var existingList = host.querySelector('.output-list');
+    if(existingList) scrollTop = existingList.scrollTop;
+    host.innerHTML = '';
+    var node = tmpl.content.cloneNode(true);
+    host.appendChild(node);
+    var listEl = host.querySelector('.output-list');
+    host.querySelector('.out-count-num').textContent = state.output.length;
+    if(!state.output.length){
+      listEl.innerHTML = '<div class="output-empty"><svg class="icon" viewBox="0 0 24 24"><path d="M8 3h6l4 4v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M14 3v4h4"/></svg><p>No pages selected yet. Choose pages from your PDFs to build the combined document.</p></div>';
+    } else {
+      state.output.forEach(function(u, idx){
+        listEl.appendChild(buildOutputItem(u, idx));
+      });
+      listEl.scrollTop = scrollTop;
+    }
+    host.querySelector('[data-action="clear-output"]').addEventListener('click', function(){
+      allPages().forEach(function(p){ if(p.selected) setPageSelected(p, false); });
+      refreshOrderChips(); renderStats(); renderOutputPanels(); updateCombineButtons();
+    });
+    host.querySelector('.combine-trigger').addEventListener('click', openExportDialog);
+    wireOutputDragDrop(listEl);
+  });
+}
+
+function buildOutputItem(pageUid, idx){
+  var res = findPage(pageUid);
+  var item = document.createElement('div');
+  item.className = 'output-item';
+  item.draggable = true;
+  item.dataset.uid = pageUid;
+  if(!res){ item.remove(); return item; }
+  var page = res.page, file = res.file;
+  item.innerHTML =
+    '<span class="order-num">'+(idx+1)+'</span>'+
+    '<span class="out-thumb">'+(page.thumb ? '<img src="'+page.thumb+'" alt="">' : '')+'</span>'+
+    '<span class="out-info"><span class="out-fname">'+escapeHtml(fileDisplayName(file))+'</span><br><span class="out-pg">Page '+(page.pageIndex+1)+'</span></span>'+
+    '<span class="out-actions">'+
+      '<span class="row"><button class="btn-icon" data-move="up" aria-label="Move earlier"><svg class="icon" viewBox="0 0 24 24"><path d="M18 15l-6-6-6 6"/></svg></button>'+
+      '<button class="btn-icon" data-move="down" aria-label="Move later"><svg class="icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button></span>'+
+      '<span class="row"><button class="btn-icon danger" data-action="remove-output" aria-label="Remove from output"><svg class="icon" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span>'+
+    '</span>';
+  item.querySelector('[data-move="up"]').addEventListener('click', function(){ moveOutput(pageUid, -1); });
+  item.querySelector('[data-move="down"]').addEventListener('click', function(){ moveOutput(pageUid, 1); });
+  item.querySelector('[data-action="remove-output"]').addEventListener('click', function(){
+    setPageSelected(page, false);
+    refreshOrderChips(); renderStats(); renderOutputPanels(); updateCombineButtons();
+  });
+  return item;
+}
+
+function updateOutputItemThumb(page){
+  $$('.output-item[data-uid="'+page.uid+'"] .out-thumb').forEach(function(el){
+    if(page.thumb) el.innerHTML = '<img src="'+page.thumb+'" alt="">';
+  });
+}
+
+function moveOutput(pageUid, dir){
+  var idx = state.output.indexOf(pageUid);
+  if(idx===-1) return;
+  var newIdx = idx+dir;
+  if(newIdx<0 || newIdx>=state.output.length) return;
+  var tmp = state.output[idx];
+  state.output[idx] = state.output[newIdx];
+  state.output[newIdx] = tmp;
+  refreshOrderChips(); renderOutputPanels();
+  announce('Moved page to position '+(newIdx+1));
+}
+
+function wireOutputDragDrop(listEl){
+  listEl.addEventListener('dragstart', function(e){
+    var item = e.target.closest('.output-item');
+    if(!item) return;
+    e.dataTransfer.setData('text/plain', JSON.stringify({type:'output-item', uid:item.dataset.uid}));
+    e.dataTransfer.effectAllowed = 'move';
+  });
+  listEl.addEventListener('dragover', function(e){
+    e.preventDefault();
+    var item = e.target.closest('.output-item');
+    $$('.output-item', listEl).forEach(function(el){ el.classList.remove('drag-over-top','drag-over-bottom'); });
+    if(item){
+      var rect = item.getBoundingClientRect();
+      var before = (e.clientY - rect.top) < rect.height/2;
+      item.classList.add(before ? 'drag-over-top' : 'drag-over-bottom');
+    }
+  });
+  listEl.addEventListener('dragleave', function(e){
+    var item = e.target.closest('.output-item');
+    if(item) item.classList.remove('drag-over-top','drag-over-bottom');
+  });
+  listEl.addEventListener('drop', function(e){
+    e.preventDefault();
+    var raw = e.dataTransfer.getData('text/plain');
+    var data; try{ data = JSON.parse(raw); }catch(err){ return; }
+    var targetItem = e.target.closest('.output-item');
+    $$('.output-item', listEl).forEach(function(el){ el.classList.remove('drag-over-top','drag-over-bottom'); });
+
+    if(data.type === 'source-page'){
+      var res = findPage(data.uid);
+      if(!res) return;
+      if(!res.page.selected) setPageSelected(res.page, true);
+      // reposition to drop location
+      var idx = state.output.indexOf(data.uid);
+      state.output.splice(idx,1);
+      var insertAt = state.output.length;
+      if(targetItem){
+        var rect = targetItem.getBoundingClientRect();
+        var before = (e.clientY - rect.top) < rect.height/2;
+        var tIdx = state.output.indexOf(targetItem.dataset.uid);
+        insertAt = before ? tIdx : tIdx+1;
+      }
+      state.output.splice(insertAt,0,data.uid);
+      refreshOrderChips(); renderStats(); renderOutputPanels(); updateCombineButtons();
+      announce('Page added to combined output');
+    } else if(data.type === 'output-item'){
+      var fromIdx = state.output.indexOf(data.uid);
+      if(fromIdx===-1) return;
+      var toIdx = state.output.length-1;
+      if(targetItem){
+        var rect2 = targetItem.getBoundingClientRect();
+        var before2 = (e.clientY - rect2.top) < rect2.height/2;
+        toIdx = state.output.indexOf(targetItem.dataset.uid);
+        if(!before2) toIdx += 1;
+        if(fromIdx < toIdx) toIdx -= 1;
+      }
+      state.output.splice(fromIdx,1);
+      state.output.splice(toIdx,0,data.uid);
+      refreshOrderChips(); renderOutputPanels();
+    }
+  });
+}
+
+/* also allow dropping a source page directly anywhere onto the output column */
+$('#desktop-output-panel').addEventListener('dragover', function(e){ e.preventDefault(); });
+$('#mobile-output-panel').addEventListener('dragover', function(e){ e.preventDefault(); });
+
+/* ---------------- Mobile tabs ---------------- */
+$('.mobile-tabs').addEventListener('click', function(e){
+  var btn = e.target.closest('button[data-tab]');
+  if(!btn) return;
+  state.mobileTab = btn.dataset.tab;
+  $$('.mobile-tabs button').forEach(function(b){ b.classList.toggle('active', b===btn); });
+  $('#main-col').style.display = state.mobileTab==='files' ? '' : 'none';
+  $('#mobile-output-panel').style.display = state.mobileTab==='output' ? 'block' : 'none';
+});
+
+/* ---------------- Combine buttons ---------------- */
+$('#combine-btn').addEventListener('click', openExportDialog);
+$('#combine-btn-mobile').addEventListener('click', openExportDialog);
+
+/* ---------------- Full preview modal ---------------- */
+var pvState = { fileId:null, pageIndex:0, scale:1.2, rotation:0, fitMode:'width' };
+function openPreview(fileId, pageIndex){
+  pvState.fileId = fileId; pvState.pageIndex = pageIndex; pvState.rotation=0;
+  $('#preview-overlay').classList.add('open');
+  renderPreviewPage();
+}
+function renderPreviewPage(){
+  var file = fileById(pvState.fileId);
+  if(!file) return;
+  var page = file.pages[pvState.pageIndex];
+  $('#pv-fname').textContent = fileDisplayName(file);
+  $('#pv-pageinfo').textContent = 'Page '+(pvState.pageIndex+1)+' of '+file.numPages;
+  $('#pv-select-check').checked = !!page.selected;
+  $('#pv-apply-rotation').checked = !!page.applyRotation;
+  file.pdfjsDoc.getPage(pvState.pageIndex+1).then(function(pdfPage){
+    var baseVp = pdfPage.getViewport({scale:1, rotation: pvState.rotation});
+    var stage = $('#preview-stage');
+    var availW = stage.clientWidth - 100, availH = stage.clientHeight - 40;
+    var scale = pvState.fitMode==='page' ? Math.min(availW/baseVp.width, availH/baseVp.height) : (availW/baseVp.width);
+    scale = scale * pvState.scale/1.2;
+    var viewport = pdfPage.getViewport({scale: Math.max(scale,0.2), rotation: pvState.rotation});
+    var canvas = $('#pv-canvas');
+    canvas.width = viewport.width; canvas.height = viewport.height;
+    var ctx = canvas.getContext('2d');
+    pdfPage.render({canvasContext:ctx, viewport:viewport});
+  });
+}
+$('#pv-close').addEventListener('click', function(){ $('#preview-overlay').classList.remove('open'); });
+$('#preview-overlay').addEventListener('keydown', function(e){
+  if(e.key==='Escape') $('#pv-close').click();
+  if(e.key==='ArrowLeft') $('#pv-prev').click();
+  if(e.key==='ArrowRight') $('#pv-next').click();
+});
+document.addEventListener('keydown', function(e){
+  if($('#preview-overlay').classList.contains('open')){
+    if(e.key==='Escape') $('#pv-close').click();
+    if(e.key==='ArrowLeft') $('#pv-prev').click();
+    if(e.key==='ArrowRight') $('#pv-next').click();
+  }
+});
+$('#pv-prev').addEventListener('click', function(){
+  var file = fileById(pvState.fileId);
+  if(!file) return;
+  pvState.pageIndex = (pvState.pageIndex - 1 + file.numPages) % file.numPages;
+  pvState.rotation = 0;
+  renderPreviewPage();
+});
+$('#pv-next').addEventListener('click', function(){
+  var file = fileById(pvState.fileId);
+  if(!file) return;
+  pvState.pageIndex = (pvState.pageIndex + 1) % file.numPages;
+  pvState.rotation = 0;
+  renderPreviewPage();
+});
+$('#pv-zoom-in').addEventListener('click', function(){ pvState.scale = Math.min(pvState.scale*1.2, 4); renderPreviewPage(); });
+$('#pv-zoom-out').addEventListener('click', function(){ pvState.scale = Math.max(pvState.scale/1.2, 0.3); renderPreviewPage(); });
+$('#pv-fit-width').addEventListener('click', function(){ pvState.fitMode='width'; pvState.scale=1.2; renderPreviewPage(); });
+$('#pv-fit-page').addEventListener('click', function(){ pvState.fitMode='page'; pvState.scale=1.2; renderPreviewPage(); });
+$('#pv-rotate').addEventListener('click', function(){ pvState.rotation = (pvState.rotation + 90) % 360; renderPreviewPage(); });
+$('#pv-select-check').addEventListener('change', function(){
+  var file = fileById(pvState.fileId);
+  if(!file) return;
+  var page = file.pages[pvState.pageIndex];
+  setPageSelected(page, $('#pv-select-check').checked);
+  refreshOrderChips(); renderStats(); renderOutputPanels(); updateCombineButtons();
+});
+$('#pv-apply-rotation').addEventListener('change', function(){
+  var file = fileById(pvState.fileId);
+  if(!file) return;
+  var page = file.pages[pvState.pageIndex];
+  page.applyRotation = $('#pv-apply-rotation').checked;
+  page.rotation = page.applyRotation ? pvState.rotation : 0;
+});
+// swipe nav (touch)
+(function(){
+  var startX=null;
+  var stage = $('#preview-stage');
+  stage.addEventListener('touchstart', function(e){ startX = e.touches[0].clientX; });
+  stage.addEventListener('touchend', function(e){
+    if(startX===null) return;
+    var dx = e.changedTouches[0].clientX - startX;
+    if(Math.abs(dx) > 50){ dx>0 ? $('#pv-prev').click() : $('#pv-next').click(); }
+    startX = null;
+  });
+})();
+
+/* ---------------- Export dialog ---------------- */
+function openExportDialog(){
+  if(!state.output.length) return;
+  $('#export-error').style.display='none';
+  $('#progress-wrap').style.display='none';
+  $('#export-confirm').style.display='';
+  $('#export-confirm').disabled = false;
+  $('#sum-pages').textContent = state.output.length;
+  var fileSet = {};
+  var totalBytes = 0, wholeBytes = 0;
+  state.files.forEach(function(f){ wholeBytes += f.size; });
+  state.output.forEach(function(u){
+    var res = findPage(u);
+    if(res){
+      fileSet[res.file.id]=1;
+      totalBytes += res.file.size / res.file.numPages;
+    }
+  });
+  $('#sum-files').textContent = Object.keys(fileSet).length;
+  $('#sum-size').textContent = '~' + formatBytes(totalBytes);
+  var strip = $('#order-strip');
+  strip.innerHTML='';
+  var maxShow = 10;
+  state.output.slice(0,maxShow).forEach(function(u){
+    var res = findPage(u);
+    var mini = document.createElement('div');
+    mini.className='mini';
+    if(res && res.page.thumb) mini.innerHTML = '<img src="'+res.page.thumb+'" alt="">';
+    strip.appendChild(mini);
+  });
+  if(state.output.length > maxShow){
+    var more = document.createElement('div');
+    more.className='mini more';
+    more.textContent = '+'+(state.output.length-maxShow);
+    strip.appendChild(more);
+  }
+  $('#export-overlay').classList.add('open');
+  setTimeout(function(){ $('#output-filename').focus(); $('#output-filename').select(); }, 50);
+}
+$('#export-close').addEventListener('click', function(){ $('#export-overlay').classList.remove('open'); });
+$('#export-cancel').addEventListener('click', function(){ $('#export-overlay').classList.remove('open'); });
+
+var STAGES = ['Reading selected pages', 'Combining pages', 'Creating the final PDF', 'Preparing the download'];
+function setProgressStage(activeIdx){
+  var wrap = $('#progress-stages');
+  wrap.innerHTML = STAGES.map(function(s, i){
+    var cls = i < activeIdx ? 'done' : (i===activeIdx ? 'active' : '');
+    var dotInner = i < activeIdx ? '<svg class="icon" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>' : '';
+    return '<div class="progress-stage '+cls+'"><span class="dot">'+dotInner+'</span><span>'+s+'</span></div>';
+  }).join('');
+}
+
+$('#export-confirm').addEventListener('click', function(){
+  performCombine();
+});
+
+var pdfDocCache = {}; // fileId -> Promise<PDFLib.PDFDocument>
+function getPdfLibDoc(file){
+  if(pdfDocCache[file.id]) return pdfDocCache[file.id];
+  pdfDocCache[file.id] = PDFLib.PDFDocument.load(file.bytes.slice(0), {ignoreEncryption:true});
+  return pdfDocCache[file.id];
+}
+
+function performCombine(){
+  $('#export-confirm').disabled = true;
+  $('#export-error').style.display='none';
+  $('#progress-wrap').style.display='block';
+  setProgressStage(0);
+
+  var filename = ($('#output-filename').value || 'combined-document.pdf').trim();
+  if(!/\.pdf$/i.test(filename)) filename += '.pdf';
+  var orientation = $('#orientation-select').value;
+  var preserveSize = $('#preserve-size-check').checked;
+  var metaTitle = $('#meta-title').value.trim();
+  var metaAuthor = $('#meta-author').value.trim();
+  var metaSubject = $('#meta-subject').value.trim();
+
+  var outputRefs = state.output.map(findPage).filter(Boolean);
+
+  setTimeout(function(){
+    setProgressStage(1);
+    var uniqueFiles = {};
+    outputRefs.forEach(function(r){ uniqueFiles[r.file.id] = r.file; });
+    var loadPromises = Object.keys(uniqueFiles).map(function(fid){ return getPdfLibDoc(uniqueFiles[fid]); });
+
+    Promise.all(loadPromises).then(function(){
+      return PDFLib.PDFDocument.create();
+    }).then(function(newDoc){
+      var chain = Promise.resolve();
+      var firstDims = null;
+      outputRefs.forEach(function(r){
+        chain = chain.then(function(){
+          return getPdfLibDoc(r.file).then(function(srcDoc){
+            return newDoc.copyPages(srcDoc, [r.page.pageIndex]).then(function(copied){
+              var pg = copied[0];
+              if(r.page.applyRotation && r.page.rotation){
+                var current = pg.getRotation().angle || 0;
+                pg.setRotation(PDFLib.degrees(current + r.page.rotation));
+              }
+              var sz = pg.getSize();
+              if(orientation !== 'keep'){
+                var isLandscape = sz.width > sz.height;
+                if(orientation==='portrait' && isLandscape) pg.setRotation(PDFLib.degrees((pg.getRotation().angle||0)+90));
+                if(orientation==='landscape' && !isLandscape) pg.setRotation(PDFLib.degrees((pg.getRotation().angle||0)+90));
+              }
+              if(!preserveSize){
+                if(!firstDims) firstDims = pg.getSize();
+                else {
+                  var s = Math.min(firstDims.width/sz.width, firstDims.height/sz.height);
+                  pg.scale(s, s);
+                }
+              }
+              newDoc.addPage(pg);
+            });
+          });
+        });
+      });
+      return chain.then(function(){
+        setProgressStage(2);
+        if(metaTitle) newDoc.setTitle(metaTitle);
+        if(metaAuthor) newDoc.setAuthor(metaAuthor);
+        if(metaSubject) newDoc.setSubject(metaSubject);
+        return newDoc.save();
+      });
+    }).then(function(bytes){
+      setProgressStage(3);
+      var blob = new Blob([bytes], {type:'application/pdf'});
+      clearGeneratedOutput();
+      state.lastGeneratedBlob = blob;
+      state.lastGeneratedInfo = { filename: filename, pages: outputRefs.length, size: blob.size };
+      setTimeout(function(){
+        $('#export-overlay').classList.remove('open');
+        showSuccess();
+      }, 400);
+    }).catch(function(err){
+      $('#progress-wrap').style.display='none';
+      $('#export-error').style.display='flex';
+      $('#export-error-title').textContent = "Couldn't create the PDF";
+      var msg = "Something in one of your source files is preventing local processing. This can happen with certain password-protected or heavily secured PDFs.";
+      if(err && /encrypt/i.test(err.message||'')) msg = "One of your files is protected in a way this app can't process locally. Remove its password using a PDF reader, then try again.";
+      $('#export-error-msg').textContent = msg;
+      $('#export-confirm').disabled = false;
+    });
+  }, 250);
+}
+
+/* ---------------- Success dialog ---------------- */
+function showSuccess(){
+  var info = state.lastGeneratedInfo;
+  $('#succ-filename').textContent = info.filename;
+  $('#succ-pages').textContent = info.pages;
+  $('#succ-size').textContent = formatBytes(info.size);
+  $('#success-sub').textContent = 'Combined from ' + Object.keys(state.output.reduce(function(acc,u){ var r=findPage(u); if(r) acc[r.file.id]=1; return acc; },{})).length + ' source file(s), created entirely on this device.';
+  $('#success-overlay').classList.add('open');
+  announce('Combined PDF created: '+info.filename);
+}
+$('#succ-download').addEventListener('click', function(){
+  if(!state.lastGeneratedBlob) return;
+  var url = URL.createObjectURL(state.lastGeneratedBlob);
+  var a = document.createElement('a');
+  a.href = url; a.download = state.lastGeneratedInfo.filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 3000);
+});
+$('#succ-preview').addEventListener('click', function(){
+  if(!state.lastGeneratedBlob) return;
+  if(state.previewUrl) URL.revokeObjectURL(state.previewUrl);
+  state.previewUrl = URL.createObjectURL(state.lastGeneratedBlob);
+  window.open(state.previewUrl, '_blank', 'noopener');
+  setTimeout(function(){
+    if(state.previewUrl){ URL.revokeObjectURL(state.previewUrl); state.previewUrl = null; }
+  }, 60000);
+});
+$('#succ-return').addEventListener('click', function(){ $('#success-overlay').classList.remove('open'); });
+$('#succ-new').addEventListener('click', function(){
+  confirmDialog('Start a new project?', 'This will clear your current files and selection. This can\u2019t be undone.', function(){
+    $('#success-overlay').classList.remove('open');
+    state.files.forEach(disposeFile);
+    Object.keys(pendingDisposals).forEach(function(id){ clearTimeout(pendingDisposals[id]); });
+    pendingDisposals = {};
+    clearGeneratedOutput();
+    state.files = []; state.output = []; pdfDocCache = {};
+    showLanding();
+  });
+  $('#confirm-ok').textContent = 'Start New';
+});
+
+/* ---------------- Overlay dismiss on backdrop click ---------------- */
+$$('.modal-overlay').forEach(function(ov){
+  ov.addEventListener('click', function(e){ if(e.target === ov) ov.classList.remove('open'); });
+});
+
+/* ---------------- Prevent double export click ---------------- */
+window.addEventListener('beforeunload', function(e){
+  if(state.files.length){
+    e.preventDefault(); e.returnValue = '';
+  }
+});
+
+})();
+</script>
+</body>
+</html>
