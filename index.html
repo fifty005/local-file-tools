@@ -414,8 +414,10 @@ details.advanced .adv-body{margin-top:12px;}
 .preview-overlay .btn-icon{color:#EDEDEA;}
 .preview-overlay .btn-icon:hover{background:rgba(255,255,255,.12);color:#fff;}
 .preview-overlay .btn-secondary{background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.2);}
-.preview-stage{flex:1;display:flex;align-items:center;justify-content:center;position:relative;overflow:auto;padding:20px;}
-.preview-stage canvas{background:#fff;box-shadow:0 10px 40px rgba(0,0,0,.5);}
+.preview-stage{flex:1;display:flex;align-items:flex-start;justify-content:flex-start;position:relative;overflow:auto;padding:20px;}
+/* Auto margins centre pages that fit, but collapse to zero for zoomed pages so
+   the real top edge remains reachable through the scroll container. */
+.preview-stage canvas{margin:auto;background:#fff;box-shadow:0 10px 40px rgba(0,0,0,.5);}
 .preview-nav{
   position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;
   background:rgba(255,255,255,.12);border:none;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;
@@ -1666,6 +1668,8 @@ function renderPreviewPage(){
   file.pdfjsDoc.getPage(pvState.pageIndex+1).then(function(pdfPage){
     var baseVp = pdfPage.getViewport({scale:1, rotation: pvState.rotation});
     var stage = $('#preview-stage');
+    stage.scrollTop = 0;
+    stage.scrollLeft = 0;
     var availW = stage.clientWidth - 100, availH = stage.clientHeight - 40;
     var scale = pvState.fitMode==='page' ? Math.min(availW/baseVp.width, availH/baseVp.height) : (availW/baseVp.width);
     scale = scale * pvState.scale/1.2;
